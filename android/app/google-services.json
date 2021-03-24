@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "343349699698",
+    "firebase_url": "https://yopp-e8837-default-rtdb.firebaseio.com",
+    "project_id": "yopp-e8837",
+    "storage_bucket": "yopp-e8837.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:343349699698:android:2aa40b1eef8b7147470eeb",
+        "android_client_info": {
+          "package_name": "com.sherlock.yopp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "343349699698-14lpu4tu3o0944pgpu5t6npqilch8r6q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sherlock.yopp",
+            "certificate_hash": "1897048c1a930c4dd50fd84b9d59d9a262037d8c"
+          }
+        },
+        {
+          "client_id": "343349699698-q20rvv4l8ve0r1a2kac1qeljlg0slld9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sherlock.yopp",
+            "certificate_hash": "bdb61ec97b20f45f0dffd76e605f4f4556b063cc"
+          }
+        },
+        {
+          "client_id": "343349699698-srddg3mb5r20i8u0a5def0m60hga3ou9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByKbhnOnZG_teRe79uUEhB_orPDJkTFoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "343349699698-srddg3mb5r20i8u0a5def0m60hga3ou9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "343349699698-1aolu6b1d6q47u99kqqu6itcn9uc42q2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.yopp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
