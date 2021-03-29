@@ -5,10 +5,10 @@ import '../sports_category.dart';
 
 Sport createHiking(int id) {
   var day = SportStyle(
-      id: 0, name: "Day hikes", requirements: [SportRequirements.skill_level]);
+      id: 0, name: "Day Hikes", requirements: [SportRequirements.skill_level]);
   var overNight = SportStyle(
       id: 1,
-      name: "Over nighters",
+      name: "Overnighters",
       requirements: [SportRequirements.skill_level]);
   var oreint = SportStyle(
       id: 2,

@@ -26,6 +26,11 @@ class AuthLogoutRequestedEvent extends AuthenticationEvent {
   List<Object> get props => [];
 }
 
+class AccountDeleted extends AuthenticationEvent {
+  @override
+  List<Object> get props => [];
+}
+
 class PauseAccountRequestedEvent extends AuthenticationEvent {
   @override
   List<Object> get props => [];

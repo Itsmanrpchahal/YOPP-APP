@@ -137,7 +137,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       return BackgroundCard(
                         height: height,
                         padding: padding,
-                        child: NoUserWidget(),
+                        child: NoUserWidget(
+                          height: height,
+                        ),
                       );
                     }
                     return DiscoverProfileCardList(
@@ -248,7 +250,7 @@ class OpenLocationSettingsWidget extends BackgroundCard {
             ),
             SizedBox(height: 16),
             Text(
-                "Your location service need to be turned on in order to find a suitable practise partners nearby.",
+                "Your location service needs to be turned on in order to find suitable practise partners nearby.",
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme

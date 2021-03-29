@@ -64,6 +64,10 @@ class AuthBloc extends Bloc<AuthenticationEvent, AuthState> {
       }
     }
 
+    if (event is AccountDeleted) {
+      yield state.copyWith(status: AuthStatus.unauthenticated);
+    }
+
     if (event is AuthLogoutRequestedEvent) {
       try {
         yield state.copyWith(
@@ -109,11 +113,10 @@ class AuthBloc extends Bloc<AuthenticationEvent, AuthState> {
         yield state.copyWith(
             status: AuthStatus.updating, message: "Deleting Account");
         final uid = FirebaseAuth.instance.currentUser.uid;
+        await OnlineStatusDatabase.updateUserPresence(uid, false);
         await _profileService.deleteProfile(uid);
-
-        await _service.deleteAccount(null, event.reason);
-
-        add(AuthLogoutRequestedEvent());
+        await _service.deleteAccount(uid, event.reason);
+        add(AccountDeleted());
       } catch (e) {
         FirebaseCrashlytics.instance.log("DeleteAccountRequestedEvent");
         FirebaseCrashlytics.instance

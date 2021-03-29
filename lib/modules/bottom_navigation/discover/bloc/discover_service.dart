@@ -91,7 +91,7 @@ class ApiDiscoverService extends DiscoverService {
     var url = UrlConstants.discoverUsers;
 
     Map data = {
-      "limit": 10,
+      "limit": 20,
       "fromAge": ageRange.start,
       "ToAge": ageRange.end,
       "lat": userProfile.address.coordinates.latitude,

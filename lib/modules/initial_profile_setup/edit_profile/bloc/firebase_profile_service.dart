@@ -21,8 +21,19 @@ class FirebaseProfileService extends ProfileService {
   Future<void> deleteProfile(String userId) async {
     final userId = FirebaseAuth.instance.currentUser.uid;
     try {
-      await updateProfile(UserProfile(status: UserStatus.deleted));
-      FirebaseConstants.userCollectionRef
+      await ApiProfileService().updateProfile(UserProfile(
+        uid: userId,
+        status: UserStatus.deleted,
+      ));
+
+      await updateProfile(UserProfile(
+        email: "",
+        avatar: "",
+        name: "YOPP User",
+        countryCode: "",
+      ));
+
+      await FirebaseConstants.userCollectionRef
           .doc(userId)
           .collection('sports')
           .get()
@@ -31,11 +42,6 @@ class FirebaseProfileService extends ProfileService {
           await doc.reference.delete();
         }
       });
-
-      await ApiProfileService().updateProfile(UserProfile(
-        uid: userId,
-        status: UserStatus.deleted,
-      ));
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("deleteProfile");
       FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
@@ -49,7 +55,7 @@ class FirebaseProfileService extends ProfileService {
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: error));
 
-      throw ErrorDescription(error.toString());
+      throw error;
     }
   }
 

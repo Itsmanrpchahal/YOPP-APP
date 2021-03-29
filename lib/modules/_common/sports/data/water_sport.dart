@@ -5,7 +5,7 @@ import 'requirements/sports_requirements.dart';
 Sport createWaterSport(int id) {
   var scuba = SportStyle(
       id: 0,
-      name: "Scuba diving",
+      name: "Scuba Diving",
       requirements: [SportRequirements.skill_level]);
   var kayaking = SportStyle(
       id: 1,

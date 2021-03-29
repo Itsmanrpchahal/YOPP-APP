@@ -113,7 +113,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     ? Container()
                     : _buildNotificationTile(
                         title: "Messages",
-                        subtitle: "Someone has send you a message",
+                        subtitle: "Someone has sent you a message",
                         value: model.messageNotification,
                         onChanged: (value) {
                           BlocProvider.of<NotificationBloc>(context)

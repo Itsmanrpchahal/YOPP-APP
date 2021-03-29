@@ -78,7 +78,7 @@ class AuthService implements BaseAuthService {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } on FirebaseException catch (e) {
-      FirebaseCrashlytics.instance.log("DeleteAccountRequestedEvent");
+      FirebaseCrashlytics.instance.log("sendResetPassword");
       FirebaseCrashlytics.instance
           .setCustomKey("uid", FirebaseAuth.instance.currentUser.uid);
       FirebaseCrashlytics.instance
@@ -95,12 +95,16 @@ class AuthService implements BaseAuthService {
 
   @override
   Future<void> deleteAccount(String userId, String reason) async {
-    final uid = userId ?? FirebaseAuth.instance.currentUser.uid;
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      await user.reload();
+      final uid = userId ?? user.uid;
+
       await FirebaseFirestore.instance
           .collection("Deleted")
           .doc(uid)
           .set({'userId': uid, 'reason': reason});
+
       await FirebaseAuth.instance.currentUser.delete();
     } on FirebaseException catch (e) {
       print(e.message);

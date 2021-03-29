@@ -236,9 +236,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
               )
             },
             onProfileTap: () async {
+              if (otherUserProfile == null) {
+                return;
+              }
+
               if (otherUserProfile.blocked.contains(currentUserId)) {
                 return;
               }
+
               if (otherUserProfile.blockedBy.contains(currentUserId)) {
                 return;
               }

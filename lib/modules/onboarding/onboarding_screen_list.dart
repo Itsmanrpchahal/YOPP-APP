@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -13,10 +12,10 @@ class OnboardingScreens extends StatefulWidget {
 
 class _OnboardingScreensState extends State<OnboardingScreens> {
   final List<OnboardingModel> model = [
-    OnboardingModel("onboarding0", "Find Your Local Practise Partners",
+    OnboardingModel("onboarding0", "Find Your Local Practise Partner",
         ["Looking for a practise partner?", " Find yours now!"]),
-    OnboardingModel("onboarding1", "Compatible Experience levels", [
-      "Looking for someone to practise with. Find different experience levels right for you."
+    OnboardingModel("onboarding1", "Compatible Experience Levels", [
+      "Looking for someone to practise with? Find different experience levels right for you."
     ]),
     OnboardingModel("onboarding2", "Easily Meet & Practise", [
       "Match, Chat, Meet & Practise What You Love.",

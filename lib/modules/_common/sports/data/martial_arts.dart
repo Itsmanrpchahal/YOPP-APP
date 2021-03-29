@@ -18,7 +18,7 @@ Sport createMartialArts(int id) {
     SportRequirements.belt,
   ]);
 
-  var taeKwonDo = SportStyle(id: 3, name: "Tae kwon do", requirements: [
+  var taeKwonDo = SportStyle(id: 3, name: "Tae Kwon Do", requirements: [
     SportRequirements.weight,
     SportRequirements.belt,
   ]);
@@ -27,7 +27,7 @@ Sport createMartialArts(int id) {
     SportRequirements.weight,
   ]);
 
-  var taiChi = SportStyle(id: 5, name: "Tai chi", requirements: [
+  var taiChi = SportStyle(id: 5, name: "Tai Chi", requirements: [
     SportRequirements.skill_level,
   ]);
 

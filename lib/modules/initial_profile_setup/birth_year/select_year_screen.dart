@@ -45,7 +45,7 @@ class SelectYearScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-                "What year were you born, this helps match you with a practise partner..",
+                "What year were you born, this helps match you with a practise partner.",
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme

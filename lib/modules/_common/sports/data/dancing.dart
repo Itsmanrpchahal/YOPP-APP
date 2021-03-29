@@ -36,7 +36,7 @@ Sport createDancing(int id) {
 
   var bachata = SportStyle(id: 0, name: "Bachata", requirements: requirements);
   var boleroRumba =
-      SportStyle(id: 1, name: "Bolero (rumba)", requirements: requirements);
+      SportStyle(id: 1, name: "Bolero (Rumba)", requirements: requirements);
   var kizomba = SportStyle(id: 2, name: "Kizomba", requirements: requirements);
   var mambo = SportStyle(id: 3, name: "Mambo", requirements: requirements);
   var merengue =
@@ -64,7 +64,7 @@ Sport createDancing(int id) {
 
   var jive = SportStyle(
       id: 3,
-      name: "Jive (swing, boogie, boogie-woogie)",
+      name: "Jive (Swing, Boogie, Boogie-woogie)",
       requirements: requirements);
 
   var lindyHop =

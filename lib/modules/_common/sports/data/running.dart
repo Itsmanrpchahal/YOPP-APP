@@ -5,7 +5,7 @@ import 'requirements/sports_requirements.dart';
 Sport createRunning(int id) {
   final running = SportStyle(
     id: 0,
-    name: "Runnning",
+    name: "Running",
     requirements: [SportRequirements.runningDistance, SportRequirements.pace],
   );
   final trailCross = SportStyle(

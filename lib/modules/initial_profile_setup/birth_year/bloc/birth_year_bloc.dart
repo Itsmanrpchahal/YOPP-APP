@@ -21,7 +21,7 @@ class BirthYearBloc extends Bloc<BirthYearEvent, BirthYearState> {
         if (currentYear - event.year > PreferenceConstants.maxAgeValue) {
           yield state.copyWith(
               status: BirthYearServiceStatus.failure,
-              message: "Age should be less than equal to" +
+              message: "Age should be less than equal to " +
                   PreferenceConstants.maxAgeValue.toInt().toString());
         } else if (currentYear - event.year >=
             PreferenceConstants.underAgeValue) {
@@ -49,7 +49,7 @@ class BirthYearBloc extends Bloc<BirthYearEvent, BirthYearState> {
         if (currentYear - event.year > PreferenceConstants.maxAgeValue) {
           yield state.copyWith(
               status: BirthYearServiceStatus.failure,
-              message: "Age should be less than equal to" +
+              message: "Age should be less than equal to " +
                   PreferenceConstants.maxAgeValue.toInt().toString());
         } else if (currentYear - event.year >=
             PreferenceConstants.minAgeValue) {
@@ -59,7 +59,7 @@ class BirthYearBloc extends Bloc<BirthYearEvent, BirthYearState> {
         } else {
           yield state.copyWith(
               status: BirthYearServiceStatus.failure,
-              message: "Age should be greater than equal to" +
+              message: "Age should be greater than equal to " +
                   PreferenceConstants.minAgeValue.toInt().toString());
         }
         yield state;

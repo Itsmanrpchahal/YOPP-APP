@@ -41,7 +41,7 @@ class OnBoardingScreen extends StatelessWidget {
           SizedBox(height: verticalPadding),
           Image.asset(
             assetName,
-            fit: BoxFit.contain,
+            fit: BoxFit.scaleDown,
             width: length,
             height: (0.788 * length),
           ),

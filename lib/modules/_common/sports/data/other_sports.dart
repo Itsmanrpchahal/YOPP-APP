@@ -15,7 +15,7 @@ Sport createOtherSports(int id) {
   );
   final climbing = SportStyle(
     id: 2,
-    name: "Rock climbing",
+    name: "Rock Climbing",
     requirements: [SportRequirements.skill_level],
   );
 

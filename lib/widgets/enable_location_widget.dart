@@ -51,7 +51,7 @@ class EnableLocationWidget extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
                 Text(
-                    "Your location service need to be turned on in order to find a suitable practise partners nearby.",
+                    "Your location service needs to be turned on in order to find suitable practise partners nearby.",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme

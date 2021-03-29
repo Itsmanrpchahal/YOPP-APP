@@ -40,7 +40,7 @@ class _SelectActivityScreenState extends State<SelectActivityScreen> {
       backgroundColor: Colors.white,
       appBar: WhiteBackgroundAppBar(
         context: context,
-        titleText: "Select Acitvity",
+        titleText: "Select Activity",
         showBackButton: Navigator.of(context).canPop(),
       ),
       body: _buildBody(context),

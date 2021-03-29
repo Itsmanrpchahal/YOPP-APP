@@ -419,9 +419,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _updateProfile(BuildContext context) {
     if (_nameFieldController.text.isEmpty) {
       CustomSnackbar.showFailed(context, "Please Enter the your name.");
-    } else if (age <= PreferenceConstants.minAgeValue) {
-      CustomSnackbar.showFailed(
-          context, "You should be 18 or more to use this app.");
+    } else if (age < PreferenceConstants.minAgeValue) {
+      CustomSnackbar.showFailed(context,
+          "You should be ${PreferenceConstants.minAgeValue.toInt()} or more to use this app.");
     } else {
       UserProfile profile = UserProfile(
         name: _nameFieldController?.text,

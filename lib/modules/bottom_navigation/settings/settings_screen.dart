@@ -280,7 +280,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(
-                          "Version 1.0.2",
+                          "Version 1.0.3",
                           style: TextStyle(
                               color: Hexcolor("#AAAAAA"),
                               fontWeight: FontWeight.w600,

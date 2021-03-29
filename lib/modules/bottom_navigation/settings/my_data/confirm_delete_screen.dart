@@ -49,8 +49,11 @@ class _ConfirmDeleteAccountScreenState
         },
       ),
       body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           ProgressHud.of(context).dismiss();
+          print(state.status);
+          print(state.message);
+
           switch (state.status) {
             case AuthStatus.updating:
               ProgressHud.of(context)
@@ -61,10 +64,12 @@ class _ConfirmDeleteAccountScreenState
               Navigator.of(context).popUntil((route) => route.isFirst);
               break;
             case AuthStatus.error:
-              ProgressHud.of(context)
+              await ProgressHud.of(context)
                   .showAndDismiss(ProgressHudType.error, state.message);
               break;
+
             default:
+              ProgressHud.of(context).dismiss();
               break;
           }
         },

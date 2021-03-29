@@ -17,7 +17,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 final InitializationSettings initializationSettings = InitializationSettings(
-  android: AndroidInitializationSettings("@mipmap/launcher_icon"),
+  android: AndroidInitializationSettings("@drawable/notification_icon"),
   iOS: IOSInitializationSettings(),
   macOS: MacOSInitializationSettings(),
 );
@@ -105,10 +105,8 @@ class PushNotificationService {
               notification.body,
               NotificationDetails(
                 android: AndroidNotificationDetails(
-                  channel.id,
-                  channel.name,
-                  channel.description,
-                  icon: '@mipmap/launcher_icon',
+                  channel.id, channel.name, channel.description,
+                  icon: '@drawable/notification_icon',
                   // other properties...
                 ),
               ),

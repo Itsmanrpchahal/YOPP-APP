@@ -6,13 +6,13 @@ import 'package:yopp/modules/screens.dart';
 
 import 'ability_list_item.dart';
 
-class AbilityListView extends StatelessWidget {
+class AbilityListView extends StatefulWidget {
   final bool editable;
   final List<UserSport> sports;
   final String selectedSport;
   final Function onAddingNewSport;
 
-  const AbilityListView({
+  AbilityListView({
     Key key,
     this.sports = const [],
     @required this.selectedSport,
@@ -21,32 +21,92 @@ class AbilityListView extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _AbilityListViewState createState() => _AbilityListViewState();
+}
+
+class _AbilityListViewState extends State<AbilityListView> {
+  ScrollController _scrollController;
+  bool showMoreArrow = true;
+
+  initState() {
+    _scrollController = ScrollController();
+
+    _scrollController.addListener(() {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        if (_scrollController.offset ==
+            _scrollController.position.maxScrollExtent) {
+          setState(() {
+            showMoreArrow = false;
+          });
+        } else {
+          if (showMoreArrow == false) {
+            showMoreArrow = true;
+            setState(() {});
+          }
+        }
+      });
+    });
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final padding = 8.0;
     final totalwidth = MediaQuery.of(context).size.width;
     final itemWidth = (totalwidth / 3) - (3 * padding);
 
-    sports.sort((a, b) => a.name.compareTo(b.name));
+    widget.sports.sort((a, b) => a.name.compareTo(b.name));
 
-    return Container(
-      color: Hexcolor("#F4F2F2"),
-      padding: EdgeInsets.all(padding),
-      child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: editable ? sports.length + 1 : sports.length,
-          itemBuilder: (context, index) {
-            if (editable && index == sports.length) {
-              return _buildAddMoreCard(context,
-                  itemWidth: itemWidth, padding: padding);
-            } else {
-              return AbilityCard(
-                  itemWidth: itemWidth,
-                  padding: padding,
-                  sport: sports[index],
-                  enabled: editable,
-                  isSelected: sports[index].name == selectedSport);
-            }
-          }),
+    return Stack(
+      children: [
+        Container(
+          color: Hexcolor("#F4F2F2"),
+          child: ListView.builder(
+              padding: EdgeInsets.only(left: padding, right: padding),
+              scrollDirection: Axis.horizontal,
+              controller: _scrollController,
+              itemCount: widget.editable
+                  ? widget.sports.length + 1
+                  : widget.sports.length,
+              itemBuilder: (context, index) {
+                if (widget.editable && index == widget.sports.length) {
+                  return _buildAddMoreCard(context,
+                      itemWidth: itemWidth, padding: padding);
+                } else {
+                  return AbilityCard(
+                      itemWidth: itemWidth,
+                      padding: padding,
+                      sport: widget.sports[index],
+                      enabled: widget.editable,
+                      isSelected:
+                          widget.sports[index].name == widget.selectedSport);
+                }
+              }),
+        ),
+        showMoreArrow && widget.sports.length > 2
+            ? Align(
+                alignment: Alignment.centerRight,
+                child: FloatingActionButton(
+                  backgroundColor: Colors.black38,
+                  mini: true,
+                  child: Icon(Icons.chevron_right_outlined),
+                  onPressed: () {
+                    final offset =
+                        _scrollController.offset + totalwidth - 2 * padding;
+                    _scrollController.animateTo(offset,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.decelerate);
+                  },
+                ))
+            : Container(),
+      ],
     );
   }
 
@@ -58,7 +118,7 @@ class AbilityListView extends StatelessWidget {
         Navigator.of(context)
             .push(SelectActivityScreen.route(
                 isInitialSetupScreen: SelectAbilityEnum.addAnother))
-            .then((value) => onAddingNewSport());
+            .then((value) => widget.onAddingNewSport());
       },
       child: Container(
         width: itemWidth,
