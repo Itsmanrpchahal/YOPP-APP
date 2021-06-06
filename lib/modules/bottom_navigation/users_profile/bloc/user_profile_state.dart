@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_state.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
+
 import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_sport.dart';
 
 class UserProfileState extends Equatable {
@@ -12,7 +13,7 @@ class UserProfileState extends Equatable {
   final String message;
 
   const UserProfileState._({
-    this.status = ProfileServiceStatus.initial,
+    this.status = ProfileServiceStatus.none,
     this.message = "",
     this.userProfile,
     this.sports = const [],
@@ -20,7 +21,7 @@ class UserProfileState extends Equatable {
   });
 
   const UserProfileState.inital()
-      : this._(status: ProfileServiceStatus.initial, message: "");
+      : this._(status: ProfileServiceStatus.none, message: "");
 
   const UserProfileState.loading(
       {UserProfile profile,
@@ -36,14 +37,10 @@ class UserProfileState extends Equatable {
 
   const UserProfileState.loaded({
     UserProfile profile,
-    List<UserSport> sports,
-    String distance,
     String message,
   }) : this._(
             status: ProfileServiceStatus.loaded,
             userProfile: profile,
-            sports: sports,
-            distance: distance ?? "",
             message: message ?? "");
 
   const UserProfileState.failure({
@@ -52,7 +49,7 @@ class UserProfileState extends Equatable {
     String distance,
     String message,
   }) : this._(
-          status: ProfileServiceStatus.failure,
+          status: ProfileServiceStatus.loadingFailed,
           userProfile: profile,
           sports: sports,
           distance: distance ?? "",

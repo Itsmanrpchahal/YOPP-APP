@@ -11,13 +11,9 @@ export 'initial_profile_setup/enable_location/enable_location_screen.dart';
 export './initial_profile_setup/birth_year/select_year_screen.dart';
 export './initial_profile_setup/select_activity/select_activity_screen.dart';
 export './initial_profile_setup/select_category/select_category.dart';
-export './initial_profile_setup/select_ability/select_ability_screen.dart';
 export './initial_profile_setup/setup_complete/setup_complete_screen.dart';
 export 'initial_profile_setup/edit_profile/edit_profile_screen.dart';
 
 export './bottom_navigation/bottom_navigation_screen.dart';
-export './bottom_navigation/matched/matched_screen.dart';
-
 export './bottom_navigation/settings/settings_screen.dart';
 export './bottom_navigation/activity/activity_screen.dart';
-export './bottom_navigation/preference_setting/preference_setting_screen.dart';

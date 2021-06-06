@@ -17,7 +17,7 @@ class RegisterState extends Equatable {
   const RegisterState({
     this.status = RegisterStatus.inital,
     this.message = "",
-    this.countryCode = "+1",
+    this.countryCode = "+61",
     this.phoneNumber,
   });
 

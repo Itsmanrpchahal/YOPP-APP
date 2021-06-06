@@ -13,13 +13,13 @@ class CustomSliderTheme {
       );
 
   static SliderThemeData get darkData => SliderThemeData(
-        activeTrackColor: Colors.white,
-        inactiveTrackColor: Hexcolor("#14B28B"),
+        activeTrackColor: AppColors.green,
+        inactiveTrackColor: Colors.grey.withOpacity(0.5),
         trackShape: RoundedRectSliderTrackShape(),
         // GradientRectSliderTrackShape(
         //     gradient: AppGradients.backgroundGradient, darkenInactive: true),
         trackHeight: 8.0,
-        thumbColor: Colors.white,
+        thumbColor: AppColors.green,
         thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.0),
       );
 

@@ -1,28 +1,26 @@
-import 'dart:math' as math;
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geolocator/geolocator.dart';
 
-import 'package:tcard/tcard.dart';
 import 'package:yopp/helper/app_color/app_colors.dart';
-import 'package:yopp/helper/app_color/app_gradients.dart';
+import 'package:yopp/helper/app_color/color_helper.dart';
+import 'package:yopp/helper/url_constants.dart';
+import 'package:yopp/modules/bottom_navigation/bloc/bottom_nav_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/bloc/bottom_nav_event.dart';
 
-import 'package:yopp/modules/bottom_navigation/bottom_nav_appBar.dart';
 import 'package:yopp/modules/bottom_navigation/discover/bloc/discover_bloc.dart';
-import 'package:yopp/modules/bottom_navigation/discover/bloc/discovered_user.dart';
-import 'package:yopp/modules/bottom_navigation/discover/ui/no_user_card.dart';
-import 'package:yopp/modules/bottom_navigation/matched/matched_screen.dart';
-import 'package:yopp/modules/bottom_navigation/bottom_nav_page.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
-import 'package:yopp/widgets/buttons/rounded_button.dart';
+import 'package:yopp/modules/bottom_navigation/discover/bloc/discover_state.dart';
+import 'package:yopp/modules/bottom_navigation/discover/ui/discover_page.dart';
+import 'package:yopp/modules/bottom_navigation/filter/filter_dialog.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
+
+import 'package:yopp/modules/bottom_navigation/profile/pages/search/bloc.dart';
+import 'package:yopp/widgets/app_bar/default_app_bar.dart';
+import 'package:yopp/widgets/progress_hud/progress_hud.dart';
 
 import '../bloc/discover_event.dart';
-import '../bloc/discover_state.dart';
-import 'background_card.dart';
-import 'discover_buttons_container.dart';
-import 'disover_profile_cardList.dart';
 
 class DiscoverScreen extends StatefulWidget {
   DiscoverScreen({
@@ -33,250 +31,455 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => false;
 
-  TCardController _controller = TCardController();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  var enableMatchButton = false;
+  TabController _tabController;
+
+  Interest selectedInterest;
 
   @override
   void initState() {
-    _refreshCards(context);
+    print("DiscoverScreen  init");
+    selectedInterest =
+        context.read<ProfileBloc>().state.userProfile.selectedInterest;
+    _tabController = TabController(length: 3, initialIndex: 2, vsync: this);
+
+    _refreshCards(
+      context,
+    );
     super.initState();
   }
 
-  void _refreshCards(BuildContext context) {
-    BlocProvider.of<DiscoverBloc>(context).add(DiscoverUsersEvent());
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _refreshCards(
+    BuildContext context,
+  ) {
+    print("_refreshCards");
+
+    SearchBy searchBy;
+
+    if (_tabController.index == 0 || _tabController.index == 1) {
+      searchBy = SearchBy.interest;
+    } else {
+      if (selectedInterest?.subCategory != null) {
+        searchBy = SearchBy.subCategory;
+      } else if (selectedInterest?.category != null) {
+        searchBy = SearchBy.category;
+      } else if (selectedInterest?.interest != null) {
+        searchBy = SearchBy.interest;
+      }
+    }
+
+    print("searchBy:" + searchBy.toString());
+    print(_tabController.index == 1);
+    BlocProvider.of<DiscoverBloc>(context, listen: false).add(
+      DiscoverUsersEvent(
+        showOnlineOnly: _tabController.index == 1,
+        currentUser: context.read<ProfileBloc>().state.userProfile,
+        selectedInterest: selectedInterest,
+        searchBy: searchBy,
+        searchRange: context.read<SearchRangeBloc>().state.selectedSerarchRange,
+      ),
+    );
+  }
+
+  void refineInterest(BuildContext context) async {
+    final availableInterest =
+        BlocProvider.of<ProfileBloc>(context, listen: false)
+            .state
+            .interestOptions;
+
+    final interestToBeUpdate = await InterestDialog.show(
+      context,
+      availableInterests: availableInterest,
+      interest: selectedInterest,
+      refineFilter: true,
+    );
+
+    if (interestToBeUpdate != null) {
+      print("interestToBeUpdate");
+      print(interestToBeUpdate.toJson().toString());
+
+      setState(() {
+        selectedInterest = interestToBeUpdate;
+      });
+
+      _refreshCards(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BottomNavPage(
-      enableGradient: true,
+    final height = (MediaQuery.of(context).size.height / 3);
+    final tabBarHeight = 80.0;
+
+    var availableWithin = "Within " +
+        context.watch<SearchRangeBloc>().state.selectedSerarchRange.name;
+
+    String interestImageUrl = "";
+    String categoryImageUrl = "";
+    final interestsOptions = context.watch<ProfileBloc>().state.interestOptions;
+
+    interestsOptions.forEach((interestOption) {
+      if (interestOption.id == selectedInterest.interest.id) {
+        interestImageUrl = UrlConstants.interestImageUrl(interestOption.image);
+        categoryImageUrl = UrlConstants.interestImageUrl(interestOption.image);
+
+        interestOption.category.forEach((categoryOption) {
+          if (categoryOption.id == selectedInterest.category.id) {
+            print(categoryOption.toRawJson());
+            categoryImageUrl =
+                UrlConstants.discoverCategoryImageUrl(categoryOption.image);
+          }
+        });
+      }
+    });
+
+    return ProgressHud(
       child: Scaffold(
-          appBar: BottomNavAppBar(
+          key: _scaffoldKey,
+          appBar: new MenuAppBar(
             context: context,
+            titleText: "Discover",
           ),
-          backgroundColor: Colors.transparent,
-          extendBodyBehindAppBar: false,
-          body: _buildBody(context)),
-    );
-  }
+          body: BlocConsumer<DiscoverBloc, DiscoverState>(
+            listener: (context, state) async {
+              print(state.status.toString());
+              ProgressHud.of(context)?.dismiss();
+              switch (state.status) {
+                case DiscoverServiceStatus.initial:
+                  break;
+                case DiscoverServiceStatus.noLocation:
+                  break;
+                case DiscoverServiceStatus.loading:
+                  ProgressHud.of(context)?.showLoading(text: state.message);
+                  break;
+                case DiscoverServiceStatus.loaded:
+                  break;
+                case DiscoverServiceStatus.loadingFailed:
+                  await ProgressHud.of(context)
+                      ?.showErrorAndDismiss(text: state.message);
+                  break;
+                case DiscoverServiceStatus.loadingAnotherPage:
+                  break;
+                case DiscoverServiceStatus.loadedAnotherPage:
+                  break;
+                case DiscoverServiceStatus.loadingAnotherPageFailed:
+                  break;
+              }
+            },
+            builder: (contex, state) {
+              return Container(
+                child: NestedScrollView(
+                  headerSliverBuilder: (context, value) {
+                    return <Widget>[
+                      SliverOverlapAbsorber(
+                        handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                            context),
+                        sliver: SliverAppBar(
+                          backgroundColor: Colors.transparent,
+                          centerTitle: true,
+                          floating: false,
+                          shadowColor: Colors.black12,
+                          toolbarHeight: 0,
+                          expandedHeight: 0,
+                          bottom: PreferredSize(
+                            preferredSize:
+                                Size(double.infinity, height + tabBarHeight),
+                            child: Container(
+                              height: height + tabBarHeight,
+                              padding: EdgeInsets.zero,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildProfileImageSection(
+                                    context,
+                                    height: height,
+                                    title: _tabController?.index == 2
+                                        ? selectedInterest?.getInterestName() ??
+                                            ""
+                                        : selectedInterest?.interest?.name ??
+                                            "",
+                                    subtitle: "Available " + availableWithin,
+                                    imageUrl: _tabController?.index == 2
+                                        ? categoryImageUrl
+                                        : interestImageUrl,
+                                  ),
+                                  // Container(
 
-  Widget _buildBody(BuildContext context) {
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      return Column(
-        children: [
-          Expanded(
-            child: _buildCards(
-              context,
-              constraints.maxHeight * 0.7,
-              constraints.maxWidth,
-            ),
-          ),
-          DiscoverButtonSection(
-              enableMatchButton: enableMatchButton,
-              height: constraints.maxHeight * 0.3,
-              controller: _controller),
-        ],
-      );
-    });
-  }
+                                  Container(
+                                    height: tabBarHeight,
+                                    child: TabBar(
+                                      controller: _tabController,
+                                      onTap: (index) {
+                                        print("ontap:" + index.toString());
 
-  Widget _buildCards(BuildContext context, double height, double width) {
-    final padding = math.min(height, width) / 6;
-
-    return Container(
-      child: Stack(
-        children: [
-          LeftBackground(
-            padding: padding,
-            height: height,
-          ),
-          RightBackground(
-            padding: padding,
-            height: height,
-          ),
-          Transform.scale(
-            scale: 0.9,
-            child: BlocConsumer<DiscoverBloc, DiscoverState>(
-              builder: (context, state) {
-                print(state.status.toString());
-                switch (state.status) {
-                  case DiscoverServiceStatus.loading:
-                    return BackgroundCard(
-                        height: height,
-                        padding: padding,
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ));
-                    break;
-
-                  case DiscoverServiceStatus.swping:
-                    return BackgroundCard(
-                        height: height,
-                        padding: padding,
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ));
-                    break;
-
-                  case DiscoverServiceStatus.noLocation:
-                    return BackgroundCard(
-                        height: height,
-                        padding: padding,
-                        child: OpenLocationSettingsWidget());
-                    break;
-
-                  default:
-                    if (state.users.isEmpty) {
-                      return BackgroundCard(
-                        height: height,
-                        padding: padding,
-                        child: NoUserWidget(
-                          height: height,
+                                        _refreshCards(context);
+                                      },
+                                      indicatorWeight: 1,
+                                      tabs: [
+                                        Container(
+                                          height: tabBarHeight,
+                                          padding: EdgeInsets.only(
+                                              top: 10, bottom: 0),
+                                          child: Tab(
+                                              child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                  child: Text(
+                                                state?.interestCount != null
+                                                    ? state.interestCount
+                                                        .toString()
+                                                    : "",
+                                                style: TextStyle(
+                                                  color: AppColors.green,
+                                                  fontSize: 18,
+                                                ),
+                                              )),
+                                              Expanded(
+                                                child: Text(
+                                                  availableWithin,
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    color: AppColors.green,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                        ),
+                                        Container(
+                                          height: tabBarHeight,
+                                          padding: EdgeInsets.only(
+                                              top: 10, bottom: 0),
+                                          child: Tab(
+                                              child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                  child: Container(
+                                                child: Text(
+                                                  state?.availableCount != null
+                                                      ? state.availableCount
+                                                          .toString()
+                                                      : "",
+                                                  style: TextStyle(
+                                                    color: AppColors.green,
+                                                    fontSize: 18,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              )),
+                                              Expanded(
+                                                child: Text(
+                                                  "Available Now",
+                                                  maxLines: 2,
+                                                  textAlign: TextAlign.center,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: AppColors.green,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                        ),
+                                        Container(
+                                          height: tabBarHeight,
+                                          padding: EdgeInsets.only(
+                                              top: 10, bottom: 0),
+                                          child: Tab(
+                                              child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Flexible(
+                                                  child: Container(
+                                                child: Text(
+                                                  state?.specificCount != null
+                                                      ? state.specificCount
+                                                          .toString()
+                                                      : "",
+                                                  style: TextStyle(
+                                                    color: AppColors.green,
+                                                    fontSize: 18,
+                                                  ),
+                                                ),
+                                              )),
+                                              Flexible(
+                                                child: InkWell(
+                                                  onTap: () =>
+                                                      refineInterest(context),
+                                                  child: Container(
+                                                    padding: EdgeInsets.all(0),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            "Refine Filter",
+                                                            maxLines: 2,
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: TextStyle(
+                                                                color: AppColors
+                                                                    .green,
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400),
+                                                          ),
+                                                        ),
+                                                        Container(
+                                                          child: Icon(
+                                                            Icons
+                                                                .arrow_drop_down,
+                                                            color: AppColors
+                                                                .lightGreen,
+                                                            size: 30,
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      );
-                    }
-                    return DiscoverProfileCardList(
-                        controller: _controller,
-                        height: height,
-                        padding: padding,
-                        users: state.users,
-                        user: state.user);
-                }
-              },
-              listener: (context, state) {
-                if (mounted) {
-                  setState(() {
-                    enableMatchButton = state.users.isNotEmpty;
-                  });
-                }
-
-                if (state.status == DiscoverServiceStatus.matched) {
-                  _showMatchedScreen(context,
-                      matchedUser: state.matchedUser, user: state.user);
-                }
-              },
-            ),
-          ),
-        ],
-      ),
+                      ),
+                    ];
+                  },
+                  body: TabBarView(
+                    physics: NeverScrollableScrollPhysics(),
+                    controller: _tabController,
+                    children: [
+                      DiscoverPage(
+                        onRefresh: () {
+                          _refreshCards(context);
+                        },
+                      ),
+                      DiscoverPage(
+                        onRefresh: () {
+                          _refreshCards(context);
+                        },
+                      ),
+                      DiscoverPage(
+                        onRefresh: () {
+                          _refreshCards(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          )),
     );
   }
 
-  void _showMatchedScreen(
-    BuildContext context, {
-    @required UserProfile user,
-    @required DiscoveredUser matchedUser,
-  }) {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Navigator.of(context)
-          .push(MatchedScreen.route(user: user, matchedUser: matchedUser));
-    });
-  }
-}
-
-class RightBackground extends StatelessWidget {
-  const RightBackground({
-    Key key,
-    @required this.padding,
-    @required this.height,
-  }) : super(key: key);
-
-  final double padding;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.scale(
-      scale: 0.8,
-      alignment: Alignment.bottomRight,
-      child: Transform.rotate(
-          alignment: Alignment.bottomRight,
-          angle: math.pi / 20,
-          child: BackgroundCard(
-              height: height, padding: padding, child: Container())),
-    );
-  }
-}
-
-class LeftBackground extends StatelessWidget {
-  const LeftBackground({
-    Key key,
-    @required this.padding,
-    @required this.height,
-  }) : super(key: key);
-
-  final double padding;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.scale(
-      scale: 0.8,
-      alignment: Alignment.centerLeft,
-      child: Transform.rotate(
-          alignment: Alignment.bottomLeft,
-          angle: -math.pi / 20,
-          child: BackgroundCard(
-              height: height, padding: padding, child: Container())),
-    );
-  }
-}
-
-class OpenLocationSettingsWidget extends BackgroundCard {
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(gradient: AppGradients.verticalLinearGradient),
-      alignment: Alignment.center,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 0, bottom: 0),
-        child: SingleChildScrollView(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildProfileImageSection(BuildContext context,
+      {String title, String subtitle, String imageUrl, double height = 200}) {
+    print("imageUrl: " + imageUrl);
+    return InkWell(
+      onTap: () {},
+      child: Container(
+        height: height,
+        width: double.infinity,
+        color: AppColors.lightGrey,
+        child: Stack(
           children: [
-            Text(
-              "Enable Location",
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .headline5
-                  .copyWith(color: Colors.white),
+            Transform.scale(
+              scale: 1.2,
+              alignment: Alignment.bottomCenter,
+              child: CachedNetworkImage(
+                  key: new ValueKey<String>(imageUrl),
+                  imageUrl: imageUrl ?? "",
+                  imageBuilder: (context, imageProvider) => Container(
+                        height: height,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                  placeholder: (context, url) =>
+                      Center(child: CircularProgressIndicator()),
+                  errorWidget: (context, url, error) => Container(
+                        height: height,
+                      )),
             ),
-            SizedBox(height: 16),
-            Text(
-                "Your location service needs to be turned on in order to find suitable practise partners nearby.",
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText1
-                    .copyWith(color: Colors.white70)),
-            SizedBox(height: 12),
-            Center(
-                child:
-                    Container(color: AppColors.orange, height: 2, width: 26)),
-            SizedBox(height: 32),
-            RoundedButton(
-                titleText: "Open Settings",
-                onPressed: () async {
-                  bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-                  bool isAndroid =
-                      Theme.of(context).platform == TargetPlatform.android;
-                  if (isIOS) {
-                    await Geolocator.openLocationSettings();
-                  }
-
-                  if (isAndroid) {
-                    await Geolocator.openAppSettings();
-                  }
-                }),
+            Container(
+              alignment: Alignment.bottomCenter,
+              padding: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Hexcolor("##030303").withOpacity(0.7),
+                    Colors.transparent
+                  ],
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                      )),
+                  SizedBox(height: 8),
+                  InkWell(
+                    onTap: () {
+                      context.read<BottomNavBloc>().add(BottomNavEvent(
+                          navOption: BottomNavOption.profile,
+                          tabOption: TabBarOption.second));
+                    },
+                    child: Text(subtitle,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        )),
+                  ),
+                ],
+              ),
+            ),
           ],
-        )),
+        ),
       ),
     );
   }

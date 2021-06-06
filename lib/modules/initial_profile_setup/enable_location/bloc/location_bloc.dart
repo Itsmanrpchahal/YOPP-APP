@@ -3,7 +3,7 @@ import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:yopp/modules/_common/models/location_permission_status.dart';
 
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_service.dart';
 import 'package:yopp/modules/initial_profile_setup/enable_location/bloc/location_event.dart';
 import 'package:yopp/modules/initial_profile_setup/enable_location/bloc/location_service.dart';
 import 'package:yopp/modules/initial_profile_setup/enable_location/bloc/location_state.dart';

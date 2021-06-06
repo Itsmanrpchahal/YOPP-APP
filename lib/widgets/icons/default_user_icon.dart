@@ -5,7 +5,9 @@ import 'package:flutter_svg/svg.dart';
 class MaleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset('assets/icons/male_user.svg');
+    return SvgPicture.asset(
+      'assets/icons/male_user.svg',
+    );
   }
 }
 

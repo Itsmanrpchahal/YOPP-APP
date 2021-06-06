@@ -3,24 +3,26 @@ import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 import 'package:yopp/modules/authentication/bloc/authentication_bloc.dart';
 import 'package:yopp/modules/authentication/bloc/authentication_service.dart';
 
 import 'package:yopp/modules/authentication/otp/bloc/otp_bloc.dart';
 import 'package:yopp/modules/authentication/sign_up/bloc/register_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/bloc/bottom_nav_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/bloc/bottom_nav_state.dart';
+import 'package:yopp/modules/bottom_navigation/block_user/bloc/bloc.dart';
 import 'package:yopp/modules/bottom_navigation/chat/bloc/chat_service.dart';
 import 'package:yopp/modules/bottom_navigation/discover/bloc/discover_bloc.dart';
 import 'package:yopp/modules/bottom_navigation/discover/bloc/discover_service.dart';
-import 'package:yopp/modules/bottom_navigation/matched/bloc/matched_bloc.dart';
-import 'package:yopp/modules/bottom_navigation/preference_setting/preference_bloc.dart';
-import 'package:yopp/modules/bottom_navigation/preference_setting/preference_service.dart';
-import 'package:yopp/modules/bottom_navigation/profile/bloc/ability_list_bloc.dart';
+
 import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/profile/pages/connections/bloc/connections_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/profile/pages/connections/bloc/connection_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/pages/search/bloc.dart';
 import 'package:yopp/modules/bottom_navigation/settings/notifications/bloc/notification_service.dart';
 import 'package:yopp/modules/initial_profile_setup/birth_year/bloc/birth_year_bloc.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/edit_profile_bloc.dart';
 
-import 'package:yopp/modules/initial_profile_setup/select_ability/bloc/ability_bloc.dart';
 import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender_bloc.dart';
 
 import 'package:yopp/routing/route_generator.dart';
@@ -31,12 +33,14 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'modules/authentication/bloc/authentication_bloc.dart';
 import 'modules/authentication/bloc/authentication_event.dart';
+import 'modules/authentication/change_number/bloc/change_number_bloc.dart';
 import 'modules/authentication/forget_password/bloc/forget_bloc.dart';
-import 'modules/bottom_navigation/chat/chatlist/bloc/chat_list_bloc.dart';
 import 'modules/bottom_navigation/discover/bloc/discover_location_bloc.dart';
-import 'modules/initial_profile_setup/edit_profile/bloc/firebase_profile_service.dart';
+import 'modules/bottom_navigation/profile/bloc/api_service.dart';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
+
+import 'modules/bottom_navigation/profile/pages/search/event.dart';
 
 FirebaseAnalytics analytics = FirebaseAnalytics();
 
@@ -72,64 +76,69 @@ class MyApp extends StatelessWidget {
         providers: [
           BlocProvider<AuthBloc>(
             create: (BuildContext context) => AuthBloc(
-                AuthService(),
-                FirebaseProfileService(),
-                FirebaseNotificationService(),
-                SharedPreferenceService())
-              ..add(AuthStatusRequestedEvent()),
+              AuthService(),
+              APIProfileService(),
+              FirebaseNotificationService(),
+            )..add(AuthStatusRequestedEvent()),
           ),
           BlocProvider<RegisterBloc>(
               create: (BuildContext context) => RegisterBloc(
                     AuthService(),
-                    FirebaseProfileService(),
-                    SharedPreferenceService(),
+                    APIProfileService(),
                   )),
           BlocProvider<OtpBloc>(create: (BuildContext context) => OtpBloc()),
           BlocProvider<ForgotBloc>(
               create: (BuildContext context) => ForgotBloc(AuthService())),
           BlocProvider<GenderBloc>(
             create: (BuildContext context) => GenderBloc(
-              FirebaseProfileService(),
+              APIProfileService(),
             ),
           ),
           BlocProvider<BirthYearBloc>(
               create: (BuildContext context) =>
-                  BirthYearBloc(FirebaseProfileService())),
-          BlocProvider<EditAbilityBloc>(
-              create: (BuildContext context) => EditAbilityBloc(
-                  FirebaseProfileService(), SharedPreferenceService())),
+                  BirthYearBloc(APIProfileService())),
           BlocProvider<ProfileBloc>(
               create: (BuildContext context) => ProfileBloc(
-                    FirebaseProfileService(),
-                    SharedPreferenceService(),
+                    APIProfileService(),
                   )),
-          BlocProvider<EditProfileBloc>(
-              create: (BuildContext context) =>
-                  EditProfileBloc(FirebaseProfileService())),
           BlocProvider<DiscoverLocationBloc>(
               create: (BuildContext context) => DiscoverLocationBloc(
-                  FirebaseProfileService(), SharedPreferenceService())),
-          BlocProvider<AbilityListBloc>(
-              create: (BuildContext context) => AbilityListBloc(
-                    FirebaseProfileService(),
-                    SharedPreferenceService(),
+                    APIProfileService(),
                   )),
           BlocProvider<DiscoverBloc>(
             create: (BuildContext context) => DiscoverBloc(
               ApiDiscoverService(),
-              FirebaseProfileService(),
-              SharedPreferenceService(),
             ),
           ),
-          BlocProvider<MatchedBloc>(
-              create: (BuildContext context) =>
-                  MatchedBloc(FirebaseChatService())),
-          BlocProvider<ChatHistoryBloc>(
-              create: (BuildContext context) =>
-                  ChatHistoryBloc(FirebaseChatService())),
-          BlocProvider<PreferenceBloc>(
-              create: (BuildContext context) =>
-                  PreferenceBloc(SharedPreferenceService())),
+          // BlocProvider<ChatHistoryBloc>(
+          //     create: (BuildContext context) =>
+          //         ChatHistoryBloc(FirebaseChatService())),
+          BlocProvider<ChangeNumberBloc>(
+            create: (BuildContext context) =>
+                ChangeNumberBloc(APIProfileService()),
+          ),
+          BlocProvider<SearchRangeBloc>(
+            create: (BuildContext context) =>
+                SearchRangeBloc()..add(LoadSelectedSearchRangeEvent()),
+          ),
+          BlocProvider<BottomNavBloc>(
+            create: (BuildContext context) => BottomNavBloc(BottomNavState(
+                selectedOption: BottomNavOption.discover,
+                selectedTime: DateTime.now())),
+          ),
+          BlocProvider<ConnectionsBloc>(
+            create: (BuildContext context) => ConnectionsBloc(
+              ApiConnectionService(),
+              FirebaseChatService(),
+            ),
+          ),
+
+          BlocProvider<BlockedUserBloc>(
+            create: (BuildContext context) => BlockedUserBloc(
+              APIProfileService(),
+              FirebaseChatService(),
+            ),
+          ),
         ],
         child: KeyboardManager(
           child: MaterialApp(
@@ -139,8 +148,9 @@ class MyApp extends StatelessWidget {
             ],
             title: 'YOPP',
             theme: ThemeData(
-              fontFamily: "Euphemia",
-              primarySwatch: Colors.blue,
+              fontFamily: "Poppins",
+              colorScheme:
+                  ColorScheme.light().copyWith(primary: AppColors.green),
               visualDensity: VisualDensity.adaptivePlatformDensity,
               textTheme: TextTheme(
                 headline1: TextStyle(

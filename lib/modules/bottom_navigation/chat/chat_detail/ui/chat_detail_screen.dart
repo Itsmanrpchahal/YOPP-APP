@@ -8,9 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mailto/mailto.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 
-import 'package:yopp/helper/app_color/app_gradients.dart';
-import 'package:yopp/helper/app_color/color_helper.dart';
 import 'package:yopp/helper/app_constants.dart';
 import 'package:yopp/helper/firebase_constants.dart';
 
@@ -23,12 +22,13 @@ import 'package:yopp/modules/bottom_navigation/chat/chat_detail/bloc/chat_state.
 import 'package:yopp/modules/bottom_navigation/chat/chat_detail/ui/reciever_message_widget.dart';
 import 'package:yopp/modules/_common/report/report_form.dart';
 import 'package:yopp/modules/bottom_navigation/chat/chat_detail/ui/sender_message_widget.dart';
-import 'package:yopp/modules/bottom_navigation/users_profile/ui/users_profile_screen.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/firebase_profile_service.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/api_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/pages/connections/bloc/connection_event.dart';
+import 'package:yopp/modules/bottom_navigation/profile/pages/connections/bloc/connections_bloc.dart';
 import 'package:yopp/routing/transitions.dart';
 
-import 'package:yopp/widgets/custom_clipper/half_curve_clipper.dart';
 import 'package:yopp/widgets/progress_hud/progress_hud.dart';
 import 'package:yopp/widgets/progress_indicator/jumping_dot_progress_indicator.dart';
 import 'package:yopp/widgets/textfield/chat_input.dart';
@@ -37,23 +37,33 @@ import 'chat_detail_app_bar.dart';
 import 'time_message_widget.dart';
 
 class ChatDetailScreen extends StatefulWidget {
-  static Route route(ChatDescription chatDescription) {
+  static Route route({
+    @required ChatDescription chatDescription,
+    @required String chatRoomId,
+  }) {
     return FadeRoute(
       builder: (context) => BlocProvider<ChatBloc>(
         create: (BuildContext context) => ChatBloc(
           FirebaseChatService(),
-          chatDescription.chatRoomId,
-          FirebaseProfileService(),
+          chatRoomId,
+          APIProfileService(),
         ),
         child: ChatDetailScreen(
           chatDescription: chatDescription,
+          chatRoomId: chatRoomId,
         ),
       ),
     );
   }
 
   final ChatDescription chatDescription;
-  const ChatDetailScreen({Key key, this.chatDescription}) : super(key: key);
+  final String chatRoomId;
+
+  const ChatDetailScreen({
+    Key key,
+    @required this.chatDescription,
+    @required this.chatRoomId,
+  }) : super(key: key);
 
   @override
   _ChatDetailScreenState createState() => _ChatDetailScreenState();
@@ -61,95 +71,78 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen>
     with WidgetsBindingObserver {
-  String currentUserId;
-  String otherUserId;
-
   StreamSubscription<Event> onlineSubscription;
 
   bool otherUserIsOnline = false;
   bool iAmTyping = false;
   bool otherUserIsTyping = false;
 
-  List<ChatMessage> chatMessages = [];
-
-  RefreshController _refreshController = RefreshController();
-  ScrollController _scrollController = new ScrollController();
+  RefreshController _refreshController;
+  ScrollController _scrollController;
 
   StreamSubscription typingSubscription;
-  StreamSubscription otherUserSubscription;
+
   UserProfile otherUserProfile;
-  bool disableChat = false;
+  String otherUserId;
 
   @override
   void dispose() {
-    print("dispose");
+    print("dispose ChatDetailScreen");
+    _scrollController.dispose();
+    _refreshController.dispose();
     typingSubscription?.cancel();
     onlineSubscription?.cancel();
-    otherUserSubscription.cancel();
     WidgetsBinding.instance.removeObserver(this);
 
     super.dispose();
   }
 
+  loadPreviousMessages() {
+    BlocProvider.of<ChatBloc>(context, listen: false)
+        .add(LoadPreviousMessageEvent());
+  }
+
   @override
   void initState() {
-    print("Users");
-    print(widget?.chatDescription?.users ?? "NA");
-    currentUserId = FirebaseAuth.instance.currentUser.uid;
-
-    if (currentUserId == widget.chatDescription.user2Id) {
-      otherUserId = widget.chatDescription.user1Id;
-    } else {
-      otherUserId = widget.chatDescription.user2Id;
-    }
-
-    observeOtherUserProfile(otherUserId);
-    WidgetsBinding.instance.addObserver(this);
-    BlocProvider.of<ChatBloc>(context)
-        .add(LoadInitialMessageEvent(widget.chatDescription.chatRoomId));
-
-    checkForOtherUserTyping(otherUserId);
-    observeUserOnlineStatus(otherUserId);
-
-    if (widget?.chatDescription?.users?.length != null &&
-        widget.chatDescription.users.length < 2) {
-      print(" disableChat = true;");
-      disableChat = true;
-    }
-
     super.initState();
+    print("initState ChatDetailScreen");
+    _refreshController = new RefreshController();
+    _scrollController = new ScrollController();
+    WidgetsBinding.instance.addObserver(this);
+
+    setupChatRoom(widget?.chatDescription);
   }
 
-  observeOtherUserProfile(String uid) {
-    otherUserSubscription = FirebaseConstants.userCollectionRef
-        .doc(uid)
-        .snapshots()
-        .listen((event) {
-      if (event.exists) {
-        if (mounted) {
-          setState(() {
-            otherUserProfile = UserProfile.fromJson(event.data());
-            if (otherUserProfile.status != UserStatus.active) {
-              disableChat = true;
-            }
-            if (otherUserProfile.blocked.contains(currentUserId)) {
-              disableChat = true;
-            }
-            if (otherUserProfile.blockedBy.contains(currentUserId)) {
-              disableChat = true;
-            }
-          });
-        }
+  void setupChatRoom(ChatDescription chatRoom) {
+    if (chatRoom != null) {
+      if (FirebaseAuth.instance.currentUser.uid == chatRoom.user2Id) {
+        observeOtherUser(chatRoom.user1Id);
+        BlocProvider.of<ChatBloc>(context, listen: false).add(
+            LoadInitialMessageEvent(
+                chatRoomId: chatRoom.chatRoomId,
+                otherUserId: chatRoom.user1Id));
+      } else {
+        observeOtherUser(chatRoom.user2Id);
+        BlocProvider.of<ChatBloc>(context, listen: false).add(
+            LoadInitialMessageEvent(
+                chatRoomId: chatRoom.chatRoomId,
+                otherUserId: chatRoom.user2Id));
       }
-    });
+    }
   }
 
-  observeUserOnlineStatus(String uid) {
+  void observeOtherUser(String userId) {
+    otherUserId = userId;
+    checkForOtherUserTyping(userId);
+    observeUserOnlineStatus(userId);
+  }
+
+  void observeUserOnlineStatus(String uid) {
     onlineSubscription = FirebaseConstants.onlineStatusDatabaseRef
         .child(uid)
         .onValue
         .listen((event) {
-      if (event.snapshot != null) {
+      if (event?.snapshot?.value != null) {
         print("Status Updated:" + event.snapshot.value.toString());
         if (mounted) {
           setState(() {
@@ -162,7 +155,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("Chat Detail:" + state.toString());
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused) {
       updateTyping(context, false);
@@ -173,13 +165,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
       if (iAmTyping) {
         updateTyping(context, iAmTyping);
       }
-
-      print("resumed");
     }
-  }
-
-  loadPreviousMessages() {
-    BlocProvider.of<ChatBloc>(context).add(LoadPreviousMessageEvent());
   }
 
   void checkForOtherUserTyping(String userId) {
@@ -207,68 +193,40 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        print("onWillPop");
         updateTyping(context, false);
+
         return true;
       },
       child: ProgressHud(
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          backgroundColor: Hexcolor("#222222"),
+          backgroundColor: Colors.white,
           extendBody: true,
           appBar: ChatDetailAppBar(
             context: context,
-            titleText: otherUserProfile?.name ?? "",
-            imageUrl: otherUserProfile?.avatar,
-            isOnline: otherUserIsOnline,
-            heroTag: otherUserId,
-            gender: otherUserProfile?.gender,
-            onBack: () {
-              updateTyping(context, false);
-            },
-            onBlockUser: () =>
-                _blockUser(id: otherUserProfile.id, uid: otherUserProfile.uid),
+            titleText: "CHAT",
+            onBlockUser: () => _blockUser(
+              friendId: otherUserProfile?.id,
+              myId: context.read<ProfileBloc>().state.userProfile.id,
+              chatRoomId: widget.chatDescription.chatRoomId,
+            ),
             onReportUser: () => {
               Navigator.of(context).push(
                 ReportScreen.route(
-                  reportTo: otherUserProfile.id,
+                  reportTo: otherUserProfile?.id,
                   title: "Chat: " + widget.chatDescription.chatRoomId,
                 ),
               )
             },
-            onProfileTap: () async {
-              if (otherUserProfile == null) {
-                return;
-              }
-
-              if (otherUserProfile.blocked.contains(currentUserId)) {
-                return;
-              }
-
-              if (otherUserProfile.blockedBy.contains(currentUserId)) {
-                return;
-              }
-
-              if (otherUserProfile.status == UserStatus.active) {
-                updateTyping(context, false);
-                await Navigator.of(context).push(UserProfileScreen.route(
-                    userId: otherUserId,
-                    userProfile: otherUserProfile,
-                    selectedSportName: widget.chatDescription?.sportName));
-                if (iAmTyping) {
-                  updateTyping(context, true);
-                }
-              }
-            },
           ),
-          body: BlocListener<ChatBloc, ChatState>(
-            listener: (context, state) {
-              if (mounted) {
-                setState(() {
-                  chatMessages = state.chatMessages;
-                });
-              }
-
+          body: BlocConsumer<ChatBloc, ChatState>(
+            builder: (context, state) {
+              return _buildBody(context, state);
+            },
+            listener: (context, state) async {
               ProgressHud.of(context).dismiss();
+
               switch (state.status) {
                 case ChatStatus.initial:
                   break;
@@ -277,14 +235,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       .show(ProgressHudType.loading, state.serviceMessage);
                   break;
                 case ChatStatus.loadingInitialSuccess:
-                  ProgressHud.of(context)
-                      .show(ProgressHudType.success, state.serviceMessage);
+                  otherUserProfile = state.otherUser;
+                  if (widget.chatDescription == null) {
+                    setupChatRoom(state.chatRoom);
+                  }
                   scrollToBottom();
 
                   break;
                 case ChatStatus.failure:
                   _refreshController.refreshCompleted();
-                  ProgressHud.of(context).showAndDismiss(
+                  await ProgressHud.of(context).showAndDismiss(
                       ProgressHudType.error, state.serviceMessage);
                   break;
                 case ChatStatus.loadingPrevious:
@@ -308,12 +268,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                       .show(ProgressHudType.loading, state.serviceMessage);
                   break;
                 case ChatStatus.blocked:
-                  ProgressHud.of(context).showAndDismiss(
+                  await ProgressHud.of(context).showAndDismiss(
                       ProgressHudType.success, state.serviceMessage);
+                  context.read<ConnectionsBloc>().add(LoadConnectionEvent());
+                  Navigator.of(context).pop();
                   break;
               }
             },
-            child: _buildBody(context),
           ),
         ),
       ),
@@ -322,35 +283,38 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   void scrollToBottom() {
     if (mounted) {
-      setState(() {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent + 100,
           duration: Duration(milliseconds: 100),
           curve: Curves.fastOutSlowIn,
         );
       });
+
+      // });
     }
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _buildBody(
+    BuildContext context,
+    ChatState state,
+  ) {
     return Container(
-      padding: EdgeInsets.only(top: 16),
-      child: ClipPath(
-        clipper: HalfCurveClipper(),
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            _buildChatList(context),
-            disableChat
-                ? _buildLeftChatText(context)
-                : _buildChatInputField(context),
-          ],
-        ),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          _buildChatList(context, state.chatMessages),
+          ((state.chatRoom?.blockedBy != null &&
+                      state.chatRoom.blockedBy.isNotEmpty) ||
+                  state.chatRoom?.connectionEndedBy != null)
+              ? _buildLeftChatText(context, state)
+              : _buildChatInputField(context, state),
+        ],
       ),
     );
   }
 
-  Widget _buildChatList(BuildContext context) {
+  Widget _buildChatList(BuildContext context, List<ChatMessage> chatMessages) {
     var padding = 80 + MediaQuery.of(context).viewPadding.bottom;
     padding += otherUserIsTyping ? 40 : 0;
 
@@ -360,15 +324,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
         right: 24,
         bottom: padding,
       ),
-      decoration: BoxDecoration(gradient: AppGradients.backgroundGradient),
       child: SmartRefresher(
         enablePullDown: true, //previousMessageMayBePresent,
         header: ClassicHeader(
           textStyle:
-              TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              TextStyle(color: AppColors.green, fontWeight: FontWeight.bold),
           releaseIcon: Icon(
             Icons.refresh,
-            color: Colors.white,
+            color: AppColors.green,
           ),
           refreshingIcon: CupertinoTheme(
             data: CupertinoTheme.of(context)
@@ -394,27 +357,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                 child: GestureDetector(
                     onLongPress: () =>
                         _showChatMessageOptions(context, chatMessages[index]),
-                    child: _chatItem(index)),
+                    child: _chatMessageWidget(chatMessages[index])),
               );
             }),
       ),
     );
   }
 
-  Widget _chatItem(index) {
-    final chatMessage = chatMessages[index];
+  Widget _chatMessageWidget(ChatMessage chatMessage) {
     if (chatMessage.type.toLowerCase() == "timestamp") {
       return TimeMessageWidget(
         message: chatMessage.message,
       );
     }
     if (chatMessage.type.toLowerCase() == "text") {
-      if (chatMessage.sender == currentUserId) {
+      if (chatMessage.sender == FirebaseAuth.instance.currentUser.uid) {
         return SentMessageWidget(
           message: chatMessage.message,
         );
       } else {
         return RecievedMessageWidget(
+          isOnline: otherUserIsOnline,
           message: chatMessage.message,
           imageUrl: otherUserProfile?.avatar,
           gender: otherUserProfile?.gender,
@@ -424,70 +387,90 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
     return Container();
   }
 
-  _buildChatInputField(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        otherUserIsTyping && otherUserIsOnline
-            ? Container(
-                padding: EdgeInsets.all(8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    JumpingDotsProgressIndicator(
-                      color: Colors.white,
-                      size: 4,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 6, bottom: 4),
-                      child: Text(
-                        (otherUserProfile?.name ?? "Other memeber") +
-                            " is typing...",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold),
+  _buildChatInputField(
+    BuildContext context,
+    ChatState state,
+  ) {
+    return Container(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          otherUserIsTyping && otherUserIsOnline
+              ? Container(
+                  padding: EdgeInsets.all(8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      JumpingDotsProgressIndicator(
+                        color: AppColors.green,
+                        size: 4,
                       ),
-                    )
-                  ],
-                ),
-              )
-            : Container(),
-        ClipPath(
-          clipper: HalfCurveClipper(customRadius: 40),
-          child: Container(
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6, bottom: 4),
+                        child: Text(
+                          (otherUserProfile?.name ?? "Other memeber") +
+                              " is typing...",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: AppColors.green,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    ],
+                  ),
+                )
+              : Container(),
+          Container(
             height: 80,
             clipBehavior: Clip.antiAlias,
             alignment: Alignment.center,
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
-            ),
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(40),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black12,
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: Offset(0, -4))
+                ]),
             child: ChatInputField(
               setIsTyping: (value) {
                 iAmTyping = value;
                 updateTyping(context, value);
               },
               onTrailingAction: (message) {
-                sendTextMessage(context, message);
+                sendTextMessage(
+                  context: context,
+                  message: message,
+                  chatRoom: state.chatRoom,
+                );
               },
             ),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 
-  void sendTextMessage(BuildContext context, String message) {
-    BlocProvider.of<ChatBloc>(context).add(PostChatMessageEvent(
+  void sendTextMessage({
+    @required BuildContext context,
+    @required String message,
+    @required ChatDescription chatRoom,
+  }) {
+    BlocProvider.of<ChatBloc>(context, listen: false).add(PostChatMessageEvent(
       message,
       "TEXT",
-      widget.chatDescription,
+      chatRoom,
     ));
   }
 
   void updateTyping(BuildContext context, bool value) {
-    BlocProvider.of<ChatBloc>(context).add(
+    BlocProvider.of<ChatBloc>(context, listen: false).add(
         UpdateTypingEvent(Typing(value: value, timeStamp: DateTime.now())));
   }
 
@@ -531,35 +514,39 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   }
 
   _deleteMessage(BuildContext context, ChatMessage message) {
-    BlocProvider.of<ChatBloc>(context)
+    BlocProvider.of<ChatBloc>(context, listen: false)
         .add(RemoveMessageForSelfEvent(message.messageId));
   }
 
-  Widget _buildLeftChatText(BuildContext context) {
-    final users = widget.chatDescription.users;
-    if (users != null) {
-      if (users.contains(otherUserId)) {
-      } else {
-        return Container(
-          height: 50,
-          child: Text(
-              (otherUserProfile?.name ?? "Other memeber") + " left the chat.",
-              style: TextStyle(
-                color: Colors.white60,
-              )),
-        );
-      }
-    }
-    return Container();
+  Widget _buildLeftChatText(BuildContext context, ChatState state) {
+    print("_buildLeftChatText");
+    print(state.chatRoom.connectionEndedBy);
+    print(state.chatRoom.blockedBy);
+    return Container(
+      height: 80,
+      width: double.infinity,
+      color: AppColors.green,
+      child: Center(
+        child: Text(
+            (otherUserProfile?.name ?? "Other user") +
+                " is not available for chat.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+            )),
+      ),
+    );
   }
 
   void _blockUser({
-    @required String id,
-    @required String uid,
+    @required String friendId,
+    @required String myId,
+    @required String chatRoomId,
   }) {
-    BlocProvider.of<ChatBloc>(context).add(BlocUserEvent(
-      id: id,
-      uid: uid,
+    BlocProvider.of<ChatBloc>(context, listen: false).add(BlockUserEvent(
+      friendId: friendId,
+      myId: myId,
+      chatRoomId: chatRoomId,
     ));
   }
 

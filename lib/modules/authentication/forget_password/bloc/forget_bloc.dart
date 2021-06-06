@@ -18,7 +18,6 @@ class ForgotBloc extends Bloc<ForgotEvent, BaseState> {
             message:
                 "A password reset link has been sent to your email address.");
       } catch (error) {
-        print(error.toString());
         yield BaseState.failure(message: error.toString());
       }
     }

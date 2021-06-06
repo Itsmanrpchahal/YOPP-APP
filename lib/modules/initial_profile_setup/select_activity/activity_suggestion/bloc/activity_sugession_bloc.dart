@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_service.dart';
 import 'package:yopp/modules/initial_profile_setup/select_activity/activity_suggestion/bloc/activity_suggestion_event.dart';
 import 'package:yopp/modules/initial_profile_setup/select_activity/activity_suggestion/bloc/activity_suggestion_state.dart';
 
@@ -22,7 +22,7 @@ class ActivitySugessionBloc
       final userId = FirebaseAuth.instance.currentUser.uid;
 
       try {
-        final profile = await profileService.getupdateProfile(userId);
+        final profile = await profileService.loadProfile(userId);
 
         yield state.copyWith(
             status: ActivitySuggestionStatus.posting,

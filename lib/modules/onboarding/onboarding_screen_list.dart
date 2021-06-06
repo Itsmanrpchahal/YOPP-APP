@@ -18,7 +18,7 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
       "Looking for someone to practise with? Find different experience levels right for you."
     ]),
     OnboardingModel("onboarding2", "Easily Meet & Practise", [
-      "Match, Chat, Meet & Practise What You Love.",
+      "Discover, Chat, Meet & Practise What You Love.",
       " It’s as easy as that!"
     ]),
   ];
@@ -55,12 +55,15 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
         }
       },
       child: OnBoardingScreen(
-          key: Key(_currentScreen.toString()),
-          assetName:
-              "assets/onboarding/" + model[_currentScreen].fileName + ".png",
-          title: model[_currentScreen].title,
-          descriptions: model[_currentScreen].descriptions,
-          onNext: () => showNextScreen()),
+        key: Key(_currentScreen.toString()),
+        index: _currentScreen,
+        assetName:
+            "assets/onboarding/" + model[_currentScreen].fileName + ".png",
+        title: model[_currentScreen].title,
+        descriptions: model[_currentScreen].descriptions,
+        onNext: () => showNextScreen(),
+        onSkip: () => _goToAuthScreen(),
+      ),
     );
   }
 

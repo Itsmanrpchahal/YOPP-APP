@@ -27,8 +27,6 @@ class FirebaseNotificationService extends NotificationService {
           .set(data.toJson(), SetOptions(merge: true));
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("setEmailNotification");
-      FirebaseCrashlytics.instance.log(userId);
-      FirebaseCrashlytics.instance.log(value.toString());
 
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
@@ -48,8 +46,6 @@ class FirebaseNotificationService extends NotificationService {
           .set(data.toJson(), SetOptions(merge: true));
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("setMatchNotification");
-      FirebaseCrashlytics.instance.log(userId);
-      FirebaseCrashlytics.instance.log(value.toString());
 
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
@@ -68,8 +64,6 @@ class FirebaseNotificationService extends NotificationService {
           .set(data.toJson(), SetOptions(merge: true));
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("setMessageNotification");
-      FirebaseCrashlytics.instance.log(userId);
-      FirebaseCrashlytics.instance.log(value.toString());
 
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
@@ -97,7 +91,6 @@ class FirebaseNotificationService extends NotificationService {
       }
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getNotificationOptions");
-      FirebaseCrashlytics.instance.log(userId);
 
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
@@ -122,7 +115,6 @@ class FirebaseNotificationService extends NotificationService {
           .set(data, SetOptions(merge: true));
       print("set token");
     } on FirebaseException catch (e) {
-      
       print(e.message);
     }
   }

@@ -5,7 +5,7 @@ enum CyclingLevel {
   level3,
 }
 
-extension runningName on CyclingLevel {
+extension cyclingName on CyclingLevel {
   String get name {
     String value;
     switch (this) {

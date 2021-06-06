@@ -5,7 +5,7 @@ import 'package:yopp/routing/transitions.dart';
 
 class TermsofUseScreen extends StatelessWidget {
   static Route get route {
-    return FadeRoute(
+    return SlideRoute(
       builder: (context) => TermsofUseScreen(),
     );
   }

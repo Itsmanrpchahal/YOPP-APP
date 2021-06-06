@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 import 'package:yopp/helper/app_color/color_helper.dart';
 import 'package:yopp/modules/_common/bloc/base_state.dart';
 import 'package:yopp/modules/_common/report/report_bloc.dart';
 import 'package:yopp/modules/_common/report/report_event.dart';
 import 'package:yopp/modules/_common/report/report_service.dart';
-import 'package:yopp/modules/bottom_navigation/preference_setting/preference_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_bloc.dart';
 import 'package:yopp/routing/transitions.dart';
-import 'package:yopp/widgets/app_bar/white_background_appBar_with_trailing.dart';
-import 'package:yopp/widgets/app_bar/white_background_appbar.dart';
+import 'package:yopp/widgets/app_bar/default_app_bar.dart';
 
 import 'package:yopp/widgets/progress_hud/progress_hud.dart';
 
@@ -63,8 +63,7 @@ class ReportScreen extends StatefulWidget {
   }) =>
       SlideRoute(
           builder: (_) => BlocProvider<ReportBloc>(
-                create: (context) =>
-                    ReportBloc(ApiReportService(), SharedPreferenceService()),
+                create: (context) => ReportBloc(ApiReportService()),
                 child: ReportScreen(
                   reportTo: reportTo,
                   title: title,
@@ -101,28 +100,13 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget build(BuildContext context) {
     return ProgressHud(
       child: Scaffold(
-        appBar: selectedOption == null
-            ? WhiteBackgroundAppBar(
-                context: context,
-                titleText: "Report",
-              )
-            : WhiteBackgroundAppBarWithAction(
-                context: context,
-                titleText: "Report",
-                onPressed: () => _sendReport(context)),
+        appBar: new DefaultAppBar(context: context, titleText: "Report"),
         backgroundColor: Hexcolor("#F2F2F2"),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ListView(
             shrinkWrap: true,
             children: [
-              SizedBox(
-                height: 1,
-                width: double.infinity,
-                child: Container(
-                  color: Colors.grey,
-                ),
-              ),
               SizedBox(height: 16),
               Text(
                 "Select a problem to proceed.",
@@ -185,6 +169,15 @@ class _ReportScreenState extends State<ReportScreen> {
                           )),
                     )
                   : Container(),
+              selectedOption != null
+                  ? FlatButton(
+                      color: AppColors.green,
+                      onPressed: () => _sendReport(context),
+                      child: Text(
+                        "CONFIRM",
+                        style: TextStyle(color: Colors.white),
+                      ))
+                  : Container(),
             ],
           ),
         ),
@@ -245,11 +238,12 @@ class _ReportScreenState extends State<ReportScreen> {
       return;
     }
 
-    BlocProvider.of<ReportBloc>(context).add(ReportEvent(
+    BlocProvider.of<ReportBloc>(context, listen: false).add(ReportEvent(
       reportTo: widget.reportTo,
       subject: selectedOption.name,
       title: widget.title,
       description: textEditingController?.text ?? "",
+      reportBy: context.read<ProfileBloc>().state.userProfile.id,
     ));
   }
 }

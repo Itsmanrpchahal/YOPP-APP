@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/firebase_profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/api_service.dart';
 
 import 'package:yopp/modules/initial_profile_setup/enable_location/bloc/location_bloc.dart';
 import 'package:yopp/modules/initial_profile_setup/enable_location/bloc/location_event.dart';
@@ -18,7 +18,7 @@ class EnableLocationScreen extends StatefulWidget {
     return FadeRoute(
         builder: (_) => BlocProvider<LocationBloc>(
               create: (BuildContext context) =>
-                  LocationBloc(FirebaseProfileService()),
+                  LocationBloc(APIProfileService()),
               child: EnableLocationScreen(),
             ));
   }
@@ -38,7 +38,8 @@ class _EnableLocationScreenState extends State<EnableLocationScreen>
     print("init EnableLocation ");
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      BlocProvider.of<LocationBloc>(context).add(CheckLocationPermission());
+      BlocProvider.of<LocationBloc>(context, listen: false)
+          .add(CheckLocationPermission());
     });
 
     super.initState();
@@ -52,7 +53,8 @@ class _EnableLocationScreenState extends State<EnableLocationScreen>
     switch (state) {
       case AppLifecycleState.resumed:
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          BlocProvider.of<LocationBloc>(context).add(CheckLocationPermission());
+          BlocProvider.of<LocationBloc>(context, listen: false)
+              .add(CheckLocationPermission());
         });
         break;
       case AppLifecycleState.inactive:
@@ -80,7 +82,8 @@ class _EnableLocationScreenState extends State<EnableLocationScreen>
           permission: state.permission,
           remindLater: () => _showNextScreen(context),
           enablePermission: () =>
-              BlocProvider.of<LocationBloc>(context).add(SaveLocationEvent()),
+              BlocProvider.of<LocationBloc>(context, listen: false)
+                  .add(SaveLocationEvent()),
         ),
         listener: (context, state) async {
           ProgressHud.of(context).dismiss();

@@ -6,17 +6,16 @@ import 'package:yopp/modules/authentication/bloc/authentication_service.dart';
 import 'package:yopp/modules/authentication/login/bloc/login_event.dart';
 import 'package:yopp/modules/authentication/login/bloc/login_model.dart';
 import 'package:yopp/modules/authentication/login/bloc/login_state.dart';
-import 'package:yopp/modules/bottom_navigation/preference_setting/preference_service.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/profile_service.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc(this._service, this._profileService, this._preferenceService)
+  LoginBloc(this._service, this._profileService)
       : super(LoginState(status: LoginStatus.inital));
 
   final BaseAuthService _service;
   final ProfileService _profileService;
-  final PreferenceService _preferenceService;
 
   @override
   Stream<LoginState> mapEventToState(LoginEvent event) async* {
@@ -50,31 +49,41 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           yield state.copyWith(
               status: LoginStatus.faliure, message: "User not found.");
         } else {
-          final userProfile =
-              await _profileService.getupdateProfile(authUser.uid);
-          await _preferenceService.setUserProfile(userProfile);
+          FirebaseCrashlytics.instance.setUserIdentifier(authUser?.uid ?? "NA");
 
-          if (userProfile.status == UserStatus.paused) {
-            await _profileService
-                .updateProfile(UserProfile(status: UserStatus.active));
-          }
+          final userProfile = await _profileService.updateProfile(
+              UserProfile(uid: authUser.uid, status: UserStatus.active));
+          final interests = await _profileService.loadInterestOptions();
 
           if (authUser.phoneNumber == null || authUser.phoneNumber.isEmpty) {
             yield state.copyWith(
-                status: LoginStatus.optPending, userProfile: userProfile);
+              status: LoginStatus.optPending,
+              userProfile: userProfile,
+              interests: interests,
+            );
           } else if (userProfile.gender == null) {
             yield state.copyWith(
-                status: LoginStatus.genderPending, userProfile: userProfile);
+              status: LoginStatus.genderPending,
+              userProfile: userProfile,
+              interests: interests,
+            );
           } else if (userProfile.age == null) {
             yield state.copyWith(
-                status: LoginStatus.birthYearPending, userProfile: userProfile);
-          } else if (userProfile.selectedSport == null) {
+              status: LoginStatus.birthYearPending,
+              userProfile: userProfile,
+              interests: interests,
+            );
+          } else if (userProfile.selectedInterest == null) {
             yield state.copyWith(
-                status: LoginStatus.abilityPending, userProfile: userProfile);
+              status: LoginStatus.abilityPending,
+              userProfile: userProfile,
+              interests: interests,
+            );
           } else {
             yield state.copyWith(
                 status: LoginStatus.success,
                 userProfile: userProfile,
+                interests: interests,
                 message: "Success");
           }
         }

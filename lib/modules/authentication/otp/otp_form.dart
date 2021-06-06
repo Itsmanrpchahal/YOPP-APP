@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 import 'package:yopp/modules/authentication/otp/bloc/otp_bloc.dart';
 import 'package:yopp/modules/authentication/otp/bloc/otp_event.dart';
 import 'package:yopp/modules/authentication/otp/bloc/otp_state.dart';
 import 'package:yopp/modules/initial_profile_setup/select_gender/gender_select_screen.dart';
 
-import 'package:yopp/widgets/buttons/auth_rounded_button.dart';
 import 'package:yopp/widgets/progress_hud/progress_hud.dart';
 
 class OtpForm extends StatefulWidget {
@@ -29,7 +29,6 @@ class _OtpFormState extends State<OtpForm> {
     final width = MediaQuery.of(context).size.width - 40;
     return BlocListener<OtpBloc, OtpState>(
       listener: (context, state) async {
-        print(state.status);
         ProgressHud.of(context).dismiss();
         switch (state.status) {
           case OtpStatus.initial:
@@ -39,12 +38,12 @@ class _OtpFormState extends State<OtpForm> {
                 .show(ProgressHudType.progress, state.message);
             break;
           case OtpStatus.sent:
-            ProgressHud.of(context)
+            await ProgressHud.of(context)
                 .showAndDismiss(ProgressHudType.success, state.message);
             break;
           case OtpStatus.faliure:
             textEditingController?.clear();
-            ProgressHud.of(context)
+            await ProgressHud.of(context)
                 .showAndDismiss(ProgressHudType.error, state.message);
             break;
           case OtpStatus.enteredCorrectOtp:
@@ -96,23 +95,28 @@ class _OtpFormState extends State<OtpForm> {
                 errorAnimationController: null,
                 controller: textEditingController,
                 keyboardType: TextInputType.phone,
-                onCompleted: (v) {
-                  print("Completed");
-                },
+                onCompleted: (v) {},
                 onChanged: (value) {},
                 beforeTextPaste: (text) {
-                  print("Allowing to paste $text");
                   return true;
                 },
               ),
               SizedBox(height: 16),
-              AuthRoundedButton(onPressed: () {
-                if (_formkey.currentState.validate()) {
-                  BlocProvider.of<OtpBloc>(context).add(
-                    VerifyOtpEvent(textEditingController.text),
-                  );
-                }
-              }),
+              FlatButton(
+                color: AppColors.green,
+                height: 50,
+                onPressed: () {
+                  if (_formkey.currentState.validate()) {
+                    BlocProvider.of<OtpBloc>(context, listen: false).add(
+                      VerifyOtpEvent(textEditingController.text),
+                    );
+                  }
+                },
+                child: Text(
+                  "CONFIRM",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              )
             ],
           )),
     );

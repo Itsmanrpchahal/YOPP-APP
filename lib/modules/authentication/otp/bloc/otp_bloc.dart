@@ -16,7 +16,6 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
   Duration _timeOut = const Duration(minutes: 1);
 
   _reset() {
-    print("reset");
     _verificationId = null;
   }
 
@@ -26,13 +25,13 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
       try {
         _reset();
         yield state.copyWith(status: OtpStatus.sending, message: "Sending Otp");
-        print("Sending Otp :" + event.countryCode + event.phoneNumber);
+        // print("Sending Otp :" + event.countryCode + event.phoneNumber);
         await _verifyPhoneNumber(event.countryCode + event.phoneNumber);
       } catch (e) {
-        print("Error Sending Otp :" +
-            event.countryCode +
-            event.phoneNumber +
-            e.toString());
+        // print("Error Sending Otp :" +
+        //     event.countryCode +
+        //     event.phoneNumber +
+        //     e.toString());
 
         FirebaseCrashlytics.instance.log(
             "Error SendOtpEvent" + event?.countryCode ??
@@ -49,23 +48,23 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
     }
 
     if (event is VerifyOtpEvent) {
-      print("VerifyOtpEvent");
+      // print("VerifyOtpEvent");
       yield state.copyWith(status: OtpStatus.sending, message: "Verifying");
       await _submitSmsCode(event.enteredOtp);
     }
 
     if (event is VerificationFailedEvent) {
-      print("VerificationFailedEvent: " + event.message);
+      // print("VerificationFailedEvent: " + event.message);
       yield state.copyWith(status: OtpStatus.faliure, message: event.message);
     }
 
     if (event is CodeSentEvent) {
-      print("CodeSentEvent: ");
+      // print("CodeSentEvent: ");
       yield state.copyWith(status: OtpStatus.sent, message: "Otp Sent");
     }
 
     if (event is VerificationSuccessEvent) {
-      print("VerificationSuccessEvent: ");
+      // print("VerificationSuccessEvent: ");
       yield state.copyWith(
           status: OtpStatus.enteredCorrectOtp,
           message: "Verification Successful");
@@ -75,12 +74,12 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
   }
 
   Future<void> _submitSmsCode(String code) async {
-    print("_submitSmsCode:" + code);
-    print("and _linkWithPhoneNumber called with sms code" +
-            code +
-            " and " +
-            _verificationId ??
-        "NA");
+    // print("_submitSmsCode:" + code);
+    // print("and _linkWithPhoneNumber called with sms code" +
+    //         code +
+    //         " and " +
+    //         _verificationId ??
+    //     "NA");
     await _linkWithPhoneNumber(
       PhoneAuthProvider.credential(
         smsCode: code,
@@ -90,7 +89,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
   }
 
   Future<void> _verifyPhoneNumber(String number) async {
-    print("_verifyPhoneNumber: " + number);
+    // print("_verifyPhoneNumber: " + number);
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: number,
       timeout: _timeOut,
@@ -104,25 +103,25 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
 
   // PhoneCodeSent
   void codeSent(String verificationId, int forceResendingToken) async {
-    print("Verification code sent to number :" +
-            verificationId +
-            " and " +
-            forceResendingToken.toString() ??
-        "NA");
+    // print("Verification code sent to number :" +
+    //         verificationId +
+    //         " and " +
+    //         forceResendingToken.toString() ??
+    //     "NA");
     _verificationId = verificationId;
     add(CodeSentEvent());
   }
 
   // PhoneCodeAutoRetrievalTimeout
   codeAutoRetrievalTimeout(String verificationId) {
-    print("codeAutoRetrievalTimeout");
+    // print("codeAutoRetrievalTimeout");
     _verificationId = verificationId;
 
-    // add(VerificationFailedEvent("TimeOut. Try Again"));
+    add(VerificationFailedEvent("TimeOut. Try Again"));
   }
 
   void verificationFailed(FirebaseAuthException authException) {
-    print("verificationFailed" + authException.toString());
+    // print("verificationFailed" + authException.toString());
 
     if (authException.code.contains('invalid-phone-number')) {
       add(VerificationFailedEvent('The provided phone number is not valid.'));
@@ -137,13 +136,13 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
   }
 
   Future<void> _linkWithPhoneNumber(PhoneAuthCredential credential) async {
-    print("linkwithPhoneNumber");
+    // print("linkwithPhoneNumber");
 
     try {
       await FirebaseAuth.instance.currentUser.linkWithCredential(credential);
       _verifyUserHasPhoneLinked();
     } catch (error) {
-      print("Failed to verify  code: $error");
+      // print("Failed to verify  code: $error");
       FirebaseCrashlytics.instance.log("_linkWithPhoneNumber error");
 
       FirebaseCrashlytics.instance
@@ -181,7 +180,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
 
     final success = (user != null &&
         (user.phoneNumber != null && user.phoneNumber.isNotEmpty));
-    print("verifyUserHasPhoneLinked:" + success.toString());
+    // print("verifyUserHasPhoneLinked:" + success.toString());
 
     if (success) {
       add(VerificationSuccessEvent());

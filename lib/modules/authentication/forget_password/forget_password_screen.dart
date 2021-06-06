@@ -36,7 +36,7 @@ class ForgetPasswordScreen extends StatelessWidget {
                 break;
 
               case ServiceStatus.success:
-                ProgressHud.of(context)
+                await ProgressHud.of(context)
                     .showAndDismiss(ProgressHudType.success, state.message)
                     .then((value) {
                   Navigator.of(context).pop();

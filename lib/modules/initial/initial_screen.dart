@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 
 import 'package:yopp/modules/authentication/bloc/authenication_state.dart';
 import 'package:yopp/modules/authentication/bloc/authentication_bloc.dart';
@@ -17,66 +19,108 @@ class InitialScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget initalScreen;
     return ProgressHud(
-      child: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
-        switch (state.status) {
-          case AuthStatus.checking:
-            initalScreen = SplashSceen();
-            break;
+        child: BlocConsumer<AuthBloc, AuthState>(builder: (context, state) {
+      print(state.status);
+      print(state.message);
+      switch (state.status) {
+        case AuthStatus.checking:
+          initalScreen = SplashSceen();
+          break;
 
-          case AuthStatus.unauthenticated:
-            initalScreen = OnboardingScreens();
-            break;
+        case AuthStatus.unauthenticated:
+          initalScreen = OnboardingScreens();
+          break;
 
-          case AuthStatus.optPending:
-            initalScreen = OtpScreen(
-                countryCode: state.user.countryCode,
-                phoneNumber: state.user.phone);
-            break;
+        case AuthStatus.optPending:
+          initalScreen = OtpScreen(
+              countryCode: state.user.countryCode,
+              phoneNumber: state.user.phone);
+          break;
 
-          case AuthStatus.genderPending:
-            initalScreen = GenderSelectScreen();
-            break;
+        case AuthStatus.genderPending:
+          initalScreen = GenderSelectScreen();
+          break;
 
-          case AuthStatus.locationPending:
-            initalScreen = EnableLocationScreen();
-            break;
+        case AuthStatus.locationPending:
+          initalScreen = EnableLocationScreen();
+          break;
 
-          case AuthStatus.birthYearPending:
-            print("Check:BirthYear from Initial Screen from Auth");
-            initalScreen = SelectYearScreen();
-            break;
+        case AuthStatus.birthYearPending:
+          print("Check:BirthYear from Initial Screen from Auth");
+          initalScreen = SelectYearScreen();
+          break;
 
-          case AuthStatus.abilityPending:
-            initalScreen = SelectActivityScreen(
-                isInitialSetupScreen: SelectAbilityEnum.initialSetup);
-            break;
+        case AuthStatus.abilityPending:
+          initalScreen = new BottomNavigationScreen(
+            userProfile: state.user,
+            interests: state.interestList,
+          );
+          break;
 
-          case AuthStatus.profilePending:
-            initalScreen = EditProfileScreen(
-              isInitialSetupScreen: true,
-              profile: state.user,
-            );
-            break;
+        case AuthStatus.profilePending:
+          initalScreen = new BottomNavigationScreen(
+            userProfile: state.user,
+            interests: state.interestList,
+          );
 
-          case AuthStatus.authenticated:
-            initalScreen = BottomNavigationScreen(
-              userProfile: state.user,
-            );
-            break;
+          break;
 
-          case AuthStatus.error:
-            initalScreen = AuthCheckingErrorWidget(
-              title: state.message,
-            );
-            break;
+        case AuthStatus.authenticated:
+          initalScreen = new BottomNavigationScreen(
+            userProfile: state.user,
+            interests: state.interestList,
+          );
+          break;
 
-          case AuthStatus.updating:
-            break;
-        }
+        case AuthStatus.error:
+          initalScreen = AuthCheckingErrorWidget(title: state.message);
+          break;
 
-        return initalScreen;
-      }),
-    );
+        case AuthStatus.updating:
+          break;
+      }
+
+      return initalScreen;
+    }, listener: (context, state) async {
+      ProgressHud.of(context).dismiss();
+      switch (state.status) {
+        case AuthStatus.checking:
+          break;
+
+        case AuthStatus.unauthenticated:
+          break;
+
+        case AuthStatus.optPending:
+          break;
+
+        case AuthStatus.genderPending:
+          break;
+
+        case AuthStatus.locationPending:
+          break;
+
+        case AuthStatus.birthYearPending:
+          break;
+
+        case AuthStatus.abilityPending:
+          break;
+
+        case AuthStatus.profilePending:
+          break;
+
+        case AuthStatus.authenticated:
+          break;
+
+        case AuthStatus.error:
+          await ProgressHud.of(context)
+              .showErrorAndDismiss(text: state.message);
+
+          break;
+
+        case AuthStatus.updating:
+          break;
+      }
+    }));
   }
 }
 
@@ -99,13 +143,30 @@ class AuthCheckingErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(title),
+            Text(
+              title,
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(
+              height: 16,
+            ),
             RaisedRoundedButton(
                 titleText: "Try Again",
+                titleStyle: TextStyle(color: Colors.white),
+                backgroundColor: AppColors.green,
                 onPressed: () {
-                  BlocProvider.of<AuthBloc>(context)
+                  BlocProvider.of<AuthBloc>(context, listen: false)
                       .add(AuthStatusRequestedEvent());
-                })
+                }),
+            RaisedRoundedButton(
+                titleText: "Cancel",
+                titleStyle: TextStyle(color: Colors.white),
+                backgroundColor: AppColors.orange,
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  BlocProvider.of<AuthBloc>(context, listen: false)
+                      .add(AuthStatusRequestedEvent());
+                }),
           ],
         ),
       ),

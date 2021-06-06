@@ -7,7 +7,7 @@ import 'package:yopp/modules/bottom_navigation/chat/bloc/chat_message.dart';
 import 'package:yopp/modules/bottom_navigation/chat/bloc/chat_service.dart';
 import 'package:yopp/modules/bottom_navigation/chat/chat_detail/bloc/chat_event.dart';
 import 'package:yopp/modules/bottom_navigation/chat/chat_detail/bloc/chat_state.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_service.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatService service;
@@ -18,15 +18,26 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   StreamSubscription _streamSubscription;
 
   ChatBloc(this.service, this.chatRoomId, this._profileService)
-      : super(ChatState([], ChatStatus.initial, ""));
+      : super(ChatState());
+
+  @override
+  Future<void> close() async {
+    print("Chat Bloc Closed");
+
+    _streamSubscription = null;
+    return super.close();
+  }
 
   @override
   Stream<ChatState> mapEventToState(ChatEvent event) async* {
-    if (event is BlocUserEvent) {
+    if (event is BlockUserEvent) {
       try {
         yield (state.copyWith(
             status: ChatStatus.blocking, serviceMessage: "Blocking"));
-        await _profileService.blockProfile(id: event.id, uid: event.uid);
+        await _profileService.blockProfile(
+            friendId: event.friendId, myId: event.myId);
+        await service.addBlockToChatRoom(
+            chatRoomId: event.chatRoomId, uids: [event.myId]);
         yield (state.copyWith(
             status: ChatStatus.blocked, serviceMessage: "Blocked User"));
       } catch (e) {
@@ -39,12 +50,17 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       try {
         yield (state.copyWith(
             status: ChatStatus.loadingInitial, serviceMessage: "Loading"));
+        final user = await _profileService.loadProfile(event.otherUserId);
+        final chatRoom = await service.getChatRoomDescription(event.chatRoomId);
         final initialMessages =
             await service.getFewLatestMessages(chatRoomId, intialMsgCount);
 
         yield (state.copyWith(
-            chatMessages: formatedMessages(initialMessages),
-            status: ChatStatus.loadingInitialSuccess));
+          chatMessages: formatedMessages(initialMessages),
+          chatRoom: chatRoom,
+          otherUser: user,
+          status: ChatStatus.loadingInitialSuccess,
+        ));
 
         if (initialMessages.isNotEmpty) {
           add(ObserveLatestMessageEvent(
@@ -93,14 +109,23 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         await _streamSubscription?.cancel();
         final stream =
             service.getChatMessageStream(chatRoomId, event.latestMsgTimeStamp);
+
         _streamSubscription = stream.listen((chatMessages) {
           if (chatMessages.isNotEmpty) {
+            print(chatMessages.toString());
             add(GotObservedMessageEvent(chatMessages.last));
+          } else {
+            print("chat message is empty");
           }
-        });
-      } catch (e) {
+        }, onError: (error, stacktrace) {
+          print("onserving error");
+        }, onDone: () {
+          print("DOne observing");
+        }, cancelOnError: false);
+      } catch (error, _) {
+        print(error);
         yield (state.copyWith(
-            status: ChatStatus.failure, serviceMessage: e.toString()));
+            status: ChatStatus.failure, serviceMessage: error.toString()));
       }
     }
 

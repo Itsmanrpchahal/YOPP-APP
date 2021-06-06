@@ -3,6 +3,7 @@ import 'package:geocoder/geocoder.dart';
 
 class LocationService {
   static Future<Position> determinePosition() async {
+    print("DisoverLocationServiceStatus Message: Determine position");
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -26,7 +27,9 @@ class LocationService {
       }
     }
 
-    return await Geolocator.getCurrentPosition();
+    final position = await Geolocator.getCurrentPosition();
+    print("DisoverLocationServiceStatus Message: GOT position");
+    return position;
   }
 
   static Future<Address> getAddressFromPosition(Position location) async {

@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 class ChatMessage extends Equatable {
-  ChatMessage(
-      {this.messageId,
-      this.message,
-      this.timeStamp,
-      this.sender,
-      this.type,
-      this.users});
+  ChatMessage({
+    this.messageId,
+    this.message,
+    this.timeStamp,
+    this.sender,
+    this.type,
+    this.users,
+  });
 
   final String messageId;
   final String message;

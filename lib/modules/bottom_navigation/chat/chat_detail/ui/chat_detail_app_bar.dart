@@ -2,20 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:yopp/helper/app_color/app_colors.dart';
-import 'package:yopp/helper/app_color/color_helper.dart';
-import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender.dart';
-import 'package:yopp/widgets/icons/circular_profile_icon.dart';
 
 class ChatDetailAppBar extends AppBar {
   final BuildContext context;
   final Color color;
   final String titleText;
-  final String imageUrl;
-  final bool isOnline;
-  final Gender gender;
-  final String heroTag;
-  final Function onProfileTap;
-  final Function onBack;
+
   final Function onTrailingTap;
 
   final Function onBlockUser;
@@ -24,21 +16,16 @@ class ChatDetailAppBar extends AppBar {
   static const _reportUser = "Report User";
   static const _blockUser = "Block User";
 
-  ChatDetailAppBar(
-      {@required this.context,
-      this.color,
-      this.titleText,
-      this.imageUrl,
-      this.isOnline,
-      this.heroTag,
-      this.onProfileTap,
-      this.onBack,
-      this.onTrailingTap,
-      @required this.onBlockUser,
-      @required this.onReportUser,
-      @required this.gender});
+  ChatDetailAppBar({
+    @required this.context,
+    this.color,
+    this.titleText,
+    this.onTrailingTap,
+    @required this.onBlockUser,
+    @required this.onReportUser,
+  });
   @override
-  Color get backgroundColor => Colors.transparent;
+  Color get backgroundColor => AppColors.green;
 
   @override
   List<Widget> get actions => [
@@ -88,97 +75,18 @@ class ChatDetailAppBar extends AppBar {
   bool get centerTitle => true;
 
   @override
-  Widget get leading => Container(
-        alignment: Alignment.centerLeft,
-        child: Transform.translate(
-          offset: Offset(16, 0),
-          child: CircleIconButton(
-            radius: 21,
-            backgrounColor: Colors.white10,
-            onPressed: () {
-              onBack();
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-            icon: Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            ),
-          ),
+  Widget get leading => IconButton(
+        icon: Icon(
+          Icons.arrow_back,
+          color: Colors.white,
         ),
+        onPressed: () => Navigator.of(context).pop(),
       );
 
   @override
-  Widget get title => GestureDetector(
-        onTap: onProfileTap,
-        child: Container(
-          padding: EdgeInsets.only(left: 40),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Hero(
-                tag: heroTag,
-                child: CircularProfileIcon(
-                  imageUrl: imageUrl,
-                  gender: gender,
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            titleText ?? "",
-                            maxLines: 1,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    isOnline == true
-                        ? Container(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: CircleAvatar(
-                                    radius: 3,
-                                    backgroundColor: Colors.green,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  "Online",
-                                  style: TextStyle(
-                                    color: Hexcolor("#14B28B"),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : Container(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+  Widget get title => Text(
+        titleText?.toUpperCase() ?? "",
+        style: TextStyle(color: Colors.white),
       );
 }
 

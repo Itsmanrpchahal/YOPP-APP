@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yopp/modules/_common/bloc/base_state.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_service.dart';
 import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender_event.dart';
 
 class GenderBloc extends Bloc<BirthYearEvent, BaseState> {

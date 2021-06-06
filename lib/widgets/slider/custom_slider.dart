@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 import 'package:yopp/widgets/slider/slider_theme.dart';
 
 abstract class CustomSlider extends StatefulWidget {}
@@ -35,14 +36,14 @@ class BaseSlider extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white),
+                    color: AppColors.green),
               ),
               Text(
                 trailingTitle ?? "",
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white.withOpacity(0.5)),
+                    color: AppColors.green.withOpacity(0.5)),
               ),
             ],
           ),

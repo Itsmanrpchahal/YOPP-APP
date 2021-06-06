@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yopp/helper/app_color/color_helper.dart';
 
 class TimeMessageWidget extends StatelessWidget {
   final String message;
@@ -14,7 +15,7 @@ class TimeMessageWidget extends StatelessWidget {
           alignment: Alignment.center,
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white30,
+            color: Hexcolor("#222222").withOpacity(0.25),
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(12),
               topRight: Radius.circular(12),
@@ -22,15 +23,10 @@ class TimeMessageWidget extends StatelessWidget {
               bottomRight: Radius.circular(12),
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Text(
-              message,
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
-            ),
+          child: Text(
+            message,
+            style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black),
           ),
         ),
         Spacer(),

@@ -79,8 +79,7 @@ class AuthService implements BaseAuthService {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("sendResetPassword");
-      FirebaseCrashlytics.instance
-          .setCustomKey("uid", FirebaseAuth.instance.currentUser.uid);
+
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
 
@@ -98,6 +97,7 @@ class AuthService implements BaseAuthService {
     try {
       final user = FirebaseAuth.instance.currentUser;
       await user.reload();
+
       final uid = userId ?? user.uid;
 
       await FirebaseFirestore.instance
@@ -107,7 +107,7 @@ class AuthService implements BaseAuthService {
 
       await FirebaseAuth.instance.currentUser.delete();
     } on FirebaseException catch (e) {
-      print(e.message);
+      // print(e.message);
 
       throw Exception(e.message);
     }

@@ -1,131 +1,126 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 
 import 'package:yopp/helper/url_constants.dart';
 import 'package:http/http.dart' as http;
+import 'package:yopp/modules/bottom_navigation/discover/bloc/discover_event.dart';
 
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
 import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender.dart';
 
 import 'discovered_user.dart';
 
 abstract class DiscoverService {
-  Future<DiscoveredData> getSimilarUsers({
-    @required UserProfile userProfile,
+  Future<DiscoveredApiResponse> loadMatchedUsers({
+    @required int skip,
+    @required int limit,
+    @required String id,
     @required double maxDistance,
-    @required RangeValues ageRange,
-  });
-
-  Future<bool> likeUser({
-    @required String uid,
-    @required DiscoveredUser discoveredUser,
-  });
-  Future<void> dislikeUser({
-    @required String uid,
-    @required DiscoveredUser discoveredUser,
+    @required SearchBy searchBy,
+    @required bool showOnlineOnly,
+    @required Interest selectedInterest,
+    @required double lat,
+    @required double lng,
   });
 }
 
 class ApiDiscoverService extends DiscoverService {
   @override
-  Future<void> dislikeUser({
-    @required String uid,
-    @required DiscoveredUser discoveredUser,
+  Future<DiscoveredApiResponse> loadMatchedUsers({
+    @required int skip,
+    @required int limit,
+    @required String id,
+    @required double maxDistance,
+    @required SearchBy searchBy,
+    @required bool showOnlineOnly,
+    @required Interest selectedInterest,
+    @required double lat,
+    @required double lng,
   }) async {
-    var url = UrlConstants.swipeUser;
+    try {
+      var url = UrlConstants.discoverUsers;
 
-    Map data = {
-      "uid": uid,
-      "sport": discoveredUser.selectedSport,
-      "swipedTo": discoveredUser.id,
-      "like": false
-    };
+      Map data = {
+        "limit": limit,
+        "skip": skip,
+        "lat": lat,
+        "lng": lng,
+        "maxDistance": maxDistance,
+        "id": id,
+        "interest": selectedInterest.interest.id,
+      };
 
-    String body = json.encode(data);
-    print("dislike user:" + body);
-    var response = await http.post(url,
-        headers: {"Content-Type": "application/json"}, body: body);
+      if (selectedInterest.category != null) {
+        data["category"] = selectedInterest.category.id;
+        print(selectedInterest.category.name);
+      }
 
-    if (response.statusCode == 201) {
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-    } else {
-      throw Exception('Failed to swipe user.');
-    }
-  }
+      if (selectedInterest.subCategory != null) {
+        data["subCategory"] = selectedInterest.subCategory.id;
+      }
 
-  @override
-  Future<bool> likeUser({String uid, DiscoveredUser discoveredUser}) async {
-    var url = UrlConstants.swipeUser;
+      switch (searchBy) {
+        case SearchBy.interest:
+          data["searchBy"] = "interest";
+          data["searchByID"] = selectedInterest.interest.id;
+          break;
+        case SearchBy.category:
+          data["searchBy"] = "category";
+          data["searchByID"] = selectedInterest.category.id;
+          break;
+        case SearchBy.subCategory:
+          data["searchBy"] = "subCategory";
+          data["searchByID"] = selectedInterest.subCategory.id;
+          break;
+      }
 
-    Map data = {
-      "uid": uid,
-      "sport": discoveredUser.selectedSport,
-      "swipedTo": discoveredUser.id,
-      "like": "true"
-    };
+      if (showOnlineOnly == true) {
+        data["online"] = "true";
+      }
 
-    String body = json.encode(data);
-    print("like user:" + body);
+      Gender gender = selectedInterest.gender;
+      switch (gender) {
+        case Gender.male:
+          data["gender"] = [Gender.male.name];
+          break;
+        case Gender.female:
+          data["gender"] = [Gender.female.name];
+          break;
+        default:
+          data["gender"] = [Gender.male.name, Gender.female.name];
+          break;
+      }
 
-    var response = await http.post(url,
-        headers: {"Content-Type": "application/json"}, body: body);
+      String body = json.encode(data);
 
-    if (response.statusCode == 201) {
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      final bool result = jsonDecode(response.body);
-      return result;
-    } else {
-      throw Exception('Failed to swipe user.');
-    }
-  }
+      var response = await http.post(url,
+          headers: {"Content-Type": "application/json"}, body: body);
 
-  @override
-  Future<DiscoveredData> getSimilarUsers({
-    UserProfile userProfile,
-    double maxDistance,
-    RangeValues ageRange,
-  }) async {
-    var url = UrlConstants.discoverUsers;
+      if (response.statusCode == 201) {
+        final data = DiscoveredApiResponse.fromJson(response.body);
 
-    Map data = {
-      "limit": 20,
-      "fromAge": ageRange.start,
-      "ToAge": ageRange.end,
-      "lat": userProfile.address.coordinates.latitude,
-      "lng": userProfile.address.coordinates.longitude,
-      "maxDistance": maxDistance * 1000,
-      "uid": userProfile.uid,
-      "sport": userProfile.selectedSport.name
-    };
+        return data;
+      } else {
+        print(body);
+        print(response.body);
+        throw Exception('Failed to get users.');
+      }
+    } on TimeoutException catch (e) {
+      print('Timeout Error: $e');
+      throw e;
+    } on SocketException catch (e) {
+      print('Socket Error: ');
+      throw Exception(e.osError.message);
+    } catch (error, stack) {
+      print("error: " + error.toString());
+      FirebaseCrashlytics.instance.log("Discover");
+      FirebaseCrashlytics.instance.recordFlutterError(
+          FlutterErrorDetails(exception: error, stack: stack));
 
-    Gender gender = userProfile.selectedSport.gender;
-    if (gender == Gender.male) {
-      data["gender"] = [Gender.male.name];
-    } else if (gender == Gender.female) {
-      data["gender"] = [Gender.female.name];
-    } else {
-      data["gender"] = [Gender.male.name, Gender.female.name];
-    }
-
-    String body = json.encode(data);
-
-    print("discover user:" + body);
-
-    var response = await http.post(url,
-        headers: {"Content-Type": "application/json"}, body: body);
-
-    if (response.statusCode == 201) {
-      print("Success");
-      print('Response body: ${response.body}');
-      print('Response status: ${response.statusCode}');
-
-      final data = DiscoveredData.fromJson(response.body);
-      return data;
-    } else {
-      throw Exception('Failed to get users.');
+      throw error;
     }
   }
 }

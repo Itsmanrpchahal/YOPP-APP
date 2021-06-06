@@ -51,6 +51,7 @@ class BaseRangeSlider extends StatelessWidget {
           child: RangeSlider(
             min: minValue,
             max: maxValue,
+            divisions: (maxValue - minValue).toInt(),
             values: values,
             onChanged: onChanged,
           ),

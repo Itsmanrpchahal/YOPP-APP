@@ -3,16 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 
-import 'package:yopp/helper/app_color/app_gradients.dart';
 import 'package:yopp/modules/_common/bloc/base_state.dart';
 import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender_event.dart';
 import 'package:yopp/modules/screens.dart';
-import 'package:yopp/widgets/app_bar/transparent_appbar_with_action.dart';
-import 'package:yopp/widgets/app_bar/white_background_appBar_with_trailing.dart';
+import 'package:yopp/widgets/app_bar/transparent_appbar.dart';
 
 import 'package:yopp/widgets/body/full_gradient_scaffold.dart';
-import 'package:yopp/widgets/custom_clipper/curve_clipper.dart';
 import 'package:yopp/widgets/progress_hud/progress_hud.dart';
 
 import 'bloc/gender.dart';
@@ -25,7 +23,7 @@ class GenderSelectScreen extends StatefulWidget {
 }
 
 class _GenderSelectScreenState extends State<GenderSelectScreen> {
-  Gender _gender = Gender.female;
+  Gender _gender;
   final cornerRadius = 60.0;
 
   selectGender(Gender gender) {
@@ -37,24 +35,23 @@ class _GenderSelectScreenState extends State<GenderSelectScreen> {
   @override
   Widget build(BuildContext context) {
     return FullGradientScaffold(
-      hideGradient: _gender == Gender.female,
       appBar: _buildAppBar(context),
       body: ProgressHud(
         child: BlocListener<GenderBloc, BaseState>(
           child: _buildBody(context),
-          listener: (context, state) {
+          listener: (context, state) async {
+            ProgressHud.of(context).dismiss();
             switch (state.status) {
               case ServiceStatus.initial:
                 break;
               case ServiceStatus.loading:
-                ProgressHud.of(context)
-                    .showAndDismiss(ProgressHudType.loading, state.message);
+                ProgressHud.of(context).showLoading(text: state.message);
                 break;
               case ServiceStatus.success:
                 _showEnableLocationScreen(context);
                 break;
               case ServiceStatus.failure:
-                ProgressHud.of(context)
+                await ProgressHud.of(context)
                     .showAndDismiss(ProgressHudType.error, state.message);
                 break;
             }
@@ -65,28 +62,22 @@ class _GenderSelectScreenState extends State<GenderSelectScreen> {
   }
 
   _buildAppBar(BuildContext context) {
-    return _gender == Gender.female
-        ? WhiteBackgroundAppBarWithAction(
-            context: context,
-            titleText: "You Are",
-            onPressed: () => _saveGender(context, Gender.female),
-            showBackButton: Navigator.of(context).canPop(),
-          )
-        : TransparentAppBarWithAction(
-            context: context,
-            titleText: "You Are",
-            onPressed: () => _saveGender(context, Gender.male),
-            showBackButton: Navigator.of(context).canPop(),
-          );
+    return TransparentAppBar(
+      context: context,
+      showBackButton: Navigator.of(context).canPop(),
+    );
   }
 
   _buildBody(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-
     return Column(
       children: [
-        _buildFemaleSection(context, height / 2 - cornerRadius),
-        _buildMaleSection(context, height / 2 + cornerRadius),
+        Expanded(child: _buildFemaleSection(context)),
+        Text("Select Your Gender",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 30,
+            )),
+        Expanded(child: _buildMaleSection(context)),
       ],
     );
   }
@@ -101,9 +92,9 @@ class _GenderSelectScreenState extends State<GenderSelectScreen> {
       children: [
         Container(
           decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected ? Colors.white : Colors.white24,
-              gradient: isSelected ? AppGradients.backgroundGradient : null),
+            shape: BoxShape.circle,
+            color: isSelected ? AppColors.green : Colors.white24,
+          ),
           height: minLength / 3.5,
           width: minLength / 3.5,
           child: SvgPicture.asset(
@@ -122,11 +113,9 @@ class _GenderSelectScreenState extends State<GenderSelectScreen> {
                   backgroundColor: Colors.white,
                   child: Container(
                       decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isSelected ? Colors.white : Colors.white24,
-                          gradient: isSelected
-                              ? AppGradients.backgroundGradient
-                              : null),
+                        shape: BoxShape.circle,
+                        color: isSelected ? AppColors.green : Colors.white24,
+                      ),
                       height: (minLength / 7) - 16,
                       width: (minLength / 7) - 16,
                       child: Icon(
@@ -142,20 +131,19 @@ class _GenderSelectScreenState extends State<GenderSelectScreen> {
   }
 
   _saveGender(BuildContext context, Gender gender) {
-    BlocProvider.of<GenderBloc>(context).add(GenderSelectionEvent(gender));
+    BlocProvider.of<GenderBloc>(context, listen: false)
+        .add(GenderSelectionEvent(gender));
   }
 
-  Widget _buildFemaleSection(BuildContext context, double height) {
+  Widget _buildFemaleSection(
+    BuildContext context,
+  ) {
     return InkWell(
       onTap: () {
-        selectGender(Gender.female);
+        _saveGender(context, Gender.female);
       },
       child: Container(
-        height: height,
-        alignment: Alignment.bottomCenter,
-        decoration: BoxDecoration(
-          color: _gender == Gender.female ? Colors.white : Colors.transparent,
-        ),
+        alignment: Alignment.center,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -164,9 +152,10 @@ class _GenderSelectScreenState extends State<GenderSelectScreen> {
             SizedBox(height: 8),
             Text(
               "Female",
-              style: Theme.of(context).textTheme.headline5.copyWith(
-                  color:
-                      _gender == Gender.female ? Colors.black : Colors.white),
+              style: Theme.of(context)
+                  .textTheme
+                  .headline5
+                  .copyWith(color: Colors.white),
             )
           ],
         ),
@@ -174,40 +163,27 @@ class _GenderSelectScreenState extends State<GenderSelectScreen> {
     );
   }
 
-  Widget _buildMaleSection(BuildContext context, double height) {
-    return ClipPath(
-      clipper: CurveClipper(),
-      child: GestureDetector(
-        onTap: () {
-          selectGender(Gender.male);
-        },
-        child: Container(
-          height: height,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            gradient: _gender == Gender.male
-                ? null
-                : AppGradients.halfBackgroundGradient,
-            borderRadius: BorderRadius.only(topRight: Radius.circular(60)),
-          ),
-          child: Transform.translate(
-            offset: Offset(0, 120),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildIcon(
-                    isSelected: _gender == Gender.male, iconName: "male"),
-                SizedBox(height: 8),
-                Text(
-                  "Male",
-                  style: Theme.of(context).textTheme.headline5.copyWith(
-                      color:
-                          _gender == Gender.male ? Colors.black : Colors.white),
-                )
-              ],
-            ),
-          ),
+  Widget _buildMaleSection(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        _saveGender(context, Gender.male);
+      },
+      child: Container(
+        width: double.infinity,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildIcon(isSelected: _gender == Gender.male, iconName: "male"),
+            SizedBox(height: 8),
+            Text(
+              "Male",
+              style: Theme.of(context)
+                  .textTheme
+                  .headline5
+                  .copyWith(color: Colors.white),
+            )
+          ],
         ),
       ),
     );

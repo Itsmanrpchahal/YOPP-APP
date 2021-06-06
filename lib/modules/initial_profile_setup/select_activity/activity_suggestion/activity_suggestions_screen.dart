@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'package:yopp/helper/app_color/color_helper.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/firebase_profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/api_service.dart';
 
 import 'package:yopp/modules/initial_profile_setup/select_activity/activity_suggestion/bloc/activity_sugession_bloc.dart';
 import 'package:yopp/modules/initial_profile_setup/select_activity/activity_suggestion/bloc/activity_suggestion.dart';
@@ -26,7 +26,7 @@ class ActivitySuggestionsScreen extends StatefulWidget {
     return FadeRoute(builder: (context) {
       return BlocProvider<ActivitySugessionBloc>(
         create: (BuildContext context) => ActivitySugessionBloc(
-            FirebaseActivitySugessionService(), FirebaseProfileService()),
+            FirebaseActivitySugessionService(), APIProfileService()),
         child: ActivitySuggestionsScreen(),
       );
     });
@@ -49,12 +49,12 @@ class _ActivitySuggestionsScreenState extends State<ActivitySuggestionsScreen> {
 
   loadLatestSuggestions(BuildContext context) {
     print("load suggestion");
-    BlocProvider.of<ActivitySugessionBloc>(context)
+    BlocProvider.of<ActivitySugessionBloc>(context, listen: false)
         .add(GetLatestSuggestionList());
   }
 
   loadPreviousSuggestions(BuildContext context) {
-    BlocProvider.of<ActivitySugessionBloc>(context)
+    BlocProvider.of<ActivitySugessionBloc>(context, listen: false)
         .add(GetPreviousSuggestionList());
   }
 

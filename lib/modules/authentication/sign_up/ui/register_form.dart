@@ -31,7 +31,7 @@ class _RegisterFormState extends State<RegisterForm> {
   TextEditingController _passwordController;
   TextEditingController _phoneController;
   String _countryCode;
-  var phoneIsValid = true;
+  String phoneNumberError;
 
   bool agreeTerms = false;
 
@@ -63,15 +63,7 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      clipBehavior: Clip.hardEdge,
-      padding: EdgeInsets.only(top: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(62),
-          bottomLeft: Radius.circular(62),
-        ),
-      ),
+      padding: EdgeInsets.all(20),
       child: Form(
           key: _formkey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -87,103 +79,88 @@ class _RegisterFormState extends State<RegisterForm> {
                     .copyWith(color: Colors.white),
               ),
               SizedBox(height: 40),
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: AuthField(
-                    controller: _fullNameController,
-                    placeHolderText: "Full name",
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      return value.isNotEmpty
-                          ? null
-                          : "Please, Enter the valid FullName.";
-                    },
-                  )),
+              AuthField(
+                controller: _fullNameController,
+                textCapitalization: TextCapitalization.words,
+                placeHolderText: "Full name",
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  return value.isNotEmpty
+                      ? null
+                      : "Please, Enter your full Name.";
+                },
+              ),
               SizedBox(height: 15),
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: AuthField(
-                    controller: _passwordController,
-                    placeHolderText: "Password",
-                    obscureText: true,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      return Validator.isValidPassword(value)
-                          ? null
-                          : "Please, Enter the valid Password.";
-                    },
-                  )),
+              PasswordField(passwordController: _passwordController),
               SizedBox(height: 15),
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: AuthField(
-                    controller: _emailController,
-                    placeHolderText: "Email",
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      return Validator.isEmail(value)
-                          ? null
-                          : "Please, Enter the valid Email.";
-                    },
-                  )),
+              AuthField(
+                controller: _emailController,
+                placeHolderText: "Email",
+                textCapitalization: TextCapitalization.none,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  return Validator.isEmail(value)
+                      ? null
+                      : "Please, Enter the valid Email.";
+                },
+              ),
               SizedBox(height: 15),
               _buildPhoneNumberSection(context),
               SizedBox(height: 15),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    IconButton(
-                        iconSize: 27,
-                        icon: CircleAvatar(
-                          backgroundColor: agreeTerms
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.25),
-                          child: agreeTerms
-                              ? Icon(
-                                  Icons.check,
-                                  color: AppColors.orange,
-                                )
-                              : Container(),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            agreeTerms = !agreeTerms;
-                          });
-                        }),
-                    RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          style: Theme.of(context)
-                              .textTheme
-                              .caption
-                              .copyWith(color: Colors.white),
-                          children: [
-                            TextSpan(
-                              text: "Agree to ",
-                            ),
-                            TextSpan(
-                              text: "Terms & Conditions",
-                              style: TextStyle(
-                                  decoration: TextDecoration.underline),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () => _showTermsAndCondition(context),
-                            ),
-                          ],
-                        ))
-                  ],
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                      iconSize: 27,
+                      icon: CircleAvatar(
+                        backgroundColor: agreeTerms
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.25),
+                        child: agreeTerms
+                            ? Icon(
+                                Icons.check,
+                                color: AppColors.orange,
+                              )
+                            : Container(),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          agreeTerms = !agreeTerms;
+                        });
+                      }),
+                  RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption
+                            .copyWith(color: Colors.white),
+                        children: [
+                          TextSpan(
+                            text: "Agree to ",
+                          ),
+                          TextSpan(
+                            text: "Terms & Conditions",
+                            style:
+                                TextStyle(decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => _showTermsAndCondition(context),
+                          ),
+                        ],
+                      ))
+                ],
               ),
-              SizedBox(height: 32),
-              FlatButton.icon(
-                color: Colors.white,
-                height: 62,
+              SizedBox(height: 15),
+              FlatButton(
+                color: AppColors.green,
+                height: 50,
                 onPressed: () {
                   _register(context);
                 },
-                icon: Icon(Icons.check),
-                label: Container(),
+                child: Text(
+                  "REGISTER",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
               )
             ],
           )),
@@ -191,32 +168,43 @@ class _RegisterFormState extends State<RegisterForm> {
   }
 
   _buildPhoneNumberSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CountryPicker(
-            onChanged: (code) {
-              _countryCode = code.dialCode;
-            },
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CountryPicker(
+          onChanged: (code) {
+            _countryCode = code.dialCode;
+            checkPhoneNumberError();
+          },
+        ),
+        SizedBox(
+          width: 15,
+        ),
+        Expanded(
+          child: AuthField(
+            controller: _phoneController,
+            placeHolderText: "Phone",
+            keyboardType: TextInputType.phone,
+            validator: (value) => phoneNumberError,
+            onChanged: (value) => checkPhoneNumberError(),
           ),
-          SizedBox(
-            width: 15,
-          ),
-          Expanded(
-            child: AuthField(
-              controller: _phoneController,
-              placeHolderText: "Phone",
-              keyboardType: TextInputType.phone,
-              validator: (value) {
-                return phoneIsValid ? null : "Please Enter valid Number.";
-              },
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  Future<void> checkPhoneNumberError() async {
+    try {
+      await FlutterLibphonenumber().parse(_countryCode + _phoneController.text);
+      // print(parsed);
+      phoneNumberError = null;
+    } catch (error) {
+      if (_phoneController.text.isEmpty) {
+        phoneNumberError = "Enter Phone Number.";
+      } else {
+        phoneNumberError = "Enter valid Phone Number.";
+      }
+    }
   }
 
   _register(BuildContext context) async {
@@ -226,24 +214,15 @@ class _RegisterFormState extends State<RegisterForm> {
       return;
     }
 
-    try {
-      await FlutterLibphonenumber().parse(_countryCode + _phoneController.text);
-
-      phoneIsValid = true;
-
-      if (_formkey.currentState.validate()) {
-        BlocProvider.of<RegisterBloc>(context).add(RegisterEvent(
-          name: _fullNameController.text,
-          phone: _phoneController.text,
-          email: _emailController.text,
-          password: _passwordController.text,
-          countryCode: _countryCode,
-        ));
-      }
-    } catch (e) {
-      setState(() {
-        phoneIsValid = false;
-      });
+    if (_formkey.currentState.validate() && phoneNumberError == null) {
+      // print("validated");
+      BlocProvider.of<RegisterBloc>(context, listen: false).add(RegisterEvent(
+        name: _fullNameController.text,
+        phone: _phoneController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        countryCode: _countryCode,
+      ));
     }
   }
 

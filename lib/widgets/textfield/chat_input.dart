@@ -63,7 +63,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
                   child: Container(
                     child: TextFormField(
                       controller: controller,
-                      keyboardType: TextInputType.text,
+                      keyboardType: TextInputType.multiline,
                       textCapitalization: TextCapitalization.sentences,
                       enableSuggestions: true,
                       minLines: 1,

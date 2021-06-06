@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
 
 abstract class EditProfileEvent extends Equatable {}
 

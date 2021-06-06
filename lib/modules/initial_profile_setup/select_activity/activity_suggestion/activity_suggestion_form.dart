@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 
 import 'package:yopp/modules/initial_profile_setup/select_activity/activity_suggestion/bloc/activity_sugession_bloc.dart';
 import 'package:yopp/modules/initial_profile_setup/select_activity/activity_suggestion/bloc/activity_suggestion_state.dart';
@@ -60,17 +61,7 @@ class _ActivitySuggestionFormState extends State<ActivitySuggestionForm> {
           }
         },
         child: Container(
-          clipBehavior: Clip.hardEdge,
-          padding: EdgeInsets.only(
-            top: 16,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.only(
-              topRight: Radius.circular(62),
-              bottomLeft: Radius.circular(62),
-            ),
-          ),
+          padding: EdgeInsets.only(top: 16, left: 32, right: 32),
           child: Form(
               key: _formkey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -85,41 +76,38 @@ class _ActivitySuggestionFormState extends State<ActivitySuggestionForm> {
                       style: Theme.of(context)
                           .textTheme
                           .headline5
-                          .copyWith(color: Colors.white),
+                          .copyWith(color: AppColors.green),
                     ),
                   ),
                   SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      "What additional sports/activities would you like added?",
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyText1
-                          .copyWith(color: Colors.white),
-                    ),
+                  Text(
+                    "What additional sports/activities would you like added?",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText1
+                        .copyWith(color: AppColors.green),
                   ),
                   SizedBox(height: 20),
-                  Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: AuthField(
-                        controller: _sportController,
-                        placeHolderText: "Enter the name.",
-                        keyboardType: TextInputType.text,
-                        validator: (value) {
-                          return value.isNotEmpty
-                              ? null
-                              : "Please, Enter the sport/activity, you would like add.";
-                        },
-                      )),
+                  CustomTextField(
+                    controller: _sportController,
+                    placeHolderText: "Enter the name.",
+                    keyboardType: TextInputType.text,
+                    validator: (value) {
+                      return value.isNotEmpty
+                          ? null
+                          : "Please, Enter the sport/activity, you would like add.";
+                    },
+                  ),
                   SizedBox(height: 32),
-                  FlatButton.icon(
-                    color: Colors.white,
-                    height: 62,
+                  FlatButton(
+                    color: AppColors.green,
+                    height: 50,
                     onPressed: () => saveAction(context),
-                    icon: Icon(Icons.check),
-                    label: Container(),
+                    child: Text(
+                      "CONFIRM",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                   )
                 ],
               )),
@@ -130,7 +118,7 @@ class _ActivitySuggestionFormState extends State<ActivitySuggestionForm> {
 
   saveAction(BuildContext context) {
     if (_formkey.currentState.validate()) {
-      BlocProvider.of<ActivitySugessionBloc>(context)
+      BlocProvider.of<ActivitySugessionBloc>(context, listen: false)
           .add(PostActivitySuggestion(_sportController.text));
     }
   }

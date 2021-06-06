@@ -7,10 +7,12 @@ import 'package:yopp/modules/authentication/sign_up/bloc/register_state.dart';
 
 class CountryPicker extends StatelessWidget {
   final Function(CountryCode) onChanged;
+  final String initialCountryCode;
 
   const CountryPicker({
     Key key,
     this.onChanged,
+    this.initialCountryCode,
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -64,7 +66,7 @@ class CountryPicker extends StatelessWidget {
               showEnglishName: true,
             ),
             // Set default value
-            initialSelection: state.countryCode,
+            initialSelection: initialCountryCode ?? state.countryCode,
             onChanged: onChanged,
           );
         },

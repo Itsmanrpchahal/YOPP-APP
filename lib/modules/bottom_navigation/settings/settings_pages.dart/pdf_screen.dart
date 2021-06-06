@@ -62,7 +62,7 @@ class _PDFScreenState extends State<PDFScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return path == null
         ? Container(
-            color: Colors.red,
+            child: CircularProgressIndicator(),
           )
         : Stack(
             children: <Widget>[

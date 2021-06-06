@@ -27,7 +27,6 @@ class FirebaseActivitySugessionService extends ActivitySugesstionService {
       return docRef.set(suggestion.toJson());
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("saveSuggestion");
-      FirebaseCrashlytics.instance.log(suggestion.toJson().toString());
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
 
@@ -54,7 +53,6 @@ class FirebaseActivitySugessionService extends ActivitySugesstionService {
       return data;
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getLatestActivitySuggestions");
-      FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
 
@@ -81,8 +79,6 @@ class FirebaseActivitySugessionService extends ActivitySugesstionService {
         return data;
       } on FirebaseException catch (e) {
         FirebaseCrashlytics.instance.log("getPreviousActivitySuggestions");
-        FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
-        FirebaseCrashlytics.instance.log(lastTimeStamp.toString());
         FirebaseCrashlytics.instance
             .recordFlutterError(FlutterErrorDetails(exception: e));
 

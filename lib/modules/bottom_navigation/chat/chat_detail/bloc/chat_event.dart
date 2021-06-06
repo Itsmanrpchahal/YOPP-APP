@@ -7,8 +7,12 @@ abstract class ChatEvent extends Equatable {}
 
 class LoadInitialMessageEvent extends ChatEvent {
   final String chatRoomId;
+  final String otherUserId;
 
-  LoadInitialMessageEvent(this.chatRoomId);
+  LoadInitialMessageEvent({
+    @required this.chatRoomId,
+    this.otherUserId,
+  });
   @override
   List<Object> get props => [chatRoomId];
 }
@@ -69,12 +73,17 @@ class UpdateTypingEvent extends ChatEvent {
   List<Object> get props => [isTyping];
 }
 
-class BlocUserEvent extends ChatEvent {
-  final String uid;
-  final String id;
+class BlockUserEvent extends ChatEvent {
+  final String myId;
+  final String friendId;
+  final String chatRoomId;
 
-  BlocUserEvent({@required this.id, @required this.uid});
+  BlockUserEvent({
+    @required this.friendId,
+    @required this.myId,
+    @required this.chatRoomId,
+  });
 
   @override
-  List<Object> get props => [id, uid];
+  List<Object> get props => [friendId, myId];
 }

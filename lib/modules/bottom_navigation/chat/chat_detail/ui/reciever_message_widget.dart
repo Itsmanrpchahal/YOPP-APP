@@ -7,9 +7,14 @@ class RecievedMessageWidget extends StatelessWidget {
   final String message;
   final String imageUrl;
   final Gender gender;
+  final bool isOnline;
 
   const RecievedMessageWidget(
-      {Key key, this.message, this.imageUrl, @required this.gender})
+      {Key key,
+      this.message,
+      this.imageUrl,
+      @required this.gender,
+      @required this.isOnline})
       : super(key: key);
 
   @override
@@ -19,10 +24,11 @@ class RecievedMessageWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircularProfileIcon(
-          imageUrl: imageUrl,
+        ActiveCircularProfileIcon(
           size: 42,
+          imageUrl: imageUrl,
           gender: gender,
+          isOnline: isOnline,
         ),
         SizedBox(width: 8),
         ConstrainedBox(

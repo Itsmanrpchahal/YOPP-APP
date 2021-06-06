@@ -25,7 +25,7 @@ class RegisterScreen extends StatelessWidget {
           },
           listener: (context, state) async {
             ProgressHud.of(context).dismiss();
-            print(state.countryCode ?? "NA");
+            // print(state.status);
             switch (state.status) {
               case RegisterStatus.inital:
                 break;
@@ -45,7 +45,7 @@ class RegisterScreen extends StatelessWidget {
                 );
                 break;
               case RegisterStatus.faliure:
-                ProgressHud.of(context)
+                await ProgressHud.of(context)
                     .showAndDismiss(ProgressHudType.error, state.message);
                 break;
             }

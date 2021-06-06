@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 import 'package:yopp/helper/validator.dart';
 import 'package:yopp/modules/authentication/forget_password/bloc/forget_bloc.dart';
 import 'package:yopp/modules/authentication/forget_password/bloc/forget_event.dart';
 import 'package:yopp/widgets/textfield/auth_field.dart';
-import 'package:yopp/widgets/buttons/auth_rounded_button.dart';
 
 class ForgetPasswordForm extends StatefulWidget {
   @override
@@ -35,15 +35,22 @@ class _ForgetPasswordFormState extends State<ForgetPasswordForm> {
               controller: _emailController,
               placeHolderText: "Email address",
               keyboardType: TextInputType.emailAddress,
+              textCapitalization: TextCapitalization.none,
               validator: (value) {
                 return Validator.isEmail(value)
                     ? null
                     : "Please, Enter the valid Email.";
               },
             ),
-            SizedBox(height: 16),
-            AuthRoundedButton(
+            SizedBox(height: 20),
+            FlatButton(
+              color: AppColors.green,
+              height: 50,
               onPressed: () => _forgotPasswordAction(context),
+              child: Text(
+                "RESET PASSWORD",
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
             )
           ],
         ));
@@ -51,7 +58,7 @@ class _ForgetPasswordFormState extends State<ForgetPasswordForm> {
 
   _forgotPasswordAction(BuildContext context) {
     if (_formkey.currentState.validate()) {
-      BlocProvider.of<ForgotBloc>(context)
+      BlocProvider.of<ForgotBloc>(context, listen: false)
           .add(ForgotPasswordEvent(_emailController.text));
     }
   }

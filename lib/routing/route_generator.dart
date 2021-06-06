@@ -39,25 +39,8 @@ class RouteGenerator {
           ),
         );
 
-      // case SelectCategoryScreen.routeName:
-      //   return FadeRoute(builder: (_) => SelectCategoryScreen());
-
-      //  case SelectAbilityScreen.routeName:
-      //   return FadeRoute(builder: (_) => SelectAbilityScreen());
-      case SetupCompleteScreen.routeName:
-        return FadeRoute(builder: (_) => SetupCompleteScreen());
-
-      // case BottomNavigationScreen.routeName:
-      //   return FadeRoute(builder: (_) => BottomNavigationScreen());
-
       case SettingsScreen.routeName:
         return FadeRoute(builder: (_) => SettingsScreen());
-
-      // case ChatDetailScreen.routeName:
-      //   return FadeRoute(builder: (_) => ChatDetailScreen());
-
-      case PreferenceSettingScreen.routeName:
-        return FadeRoute(builder: (_) => PreferenceSettingScreen());
 
       default:
         return FadeRoute(

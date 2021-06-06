@@ -4,8 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:yopp/helper/app_color/app_colors.dart';
 import 'package:yopp/modules/authentication/bloc/authentication_service.dart';
 import 'package:yopp/modules/authentication/login/login_form.dart';
-import 'package:yopp/modules/bottom_navigation/preference_setting/preference_service.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/firebase_profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/api_service.dart';
 import 'package:yopp/modules/screens.dart';
 import 'package:yopp/routing/transitions.dart';
 import 'package:yopp/widgets/body/full_gradient_scaffold.dart';
@@ -21,8 +20,7 @@ class LoginScreen extends StatelessWidget {
       return BlocProvider<LoginBloc>(
         create: (BuildContext context) => LoginBloc(
           AuthService(),
-          FirebaseProfileService(),
-          SharedPreferenceService(),
+          APIProfileService(),
         )..add(LoginInitialEvent()),
         child: LoginScreen(),
       );
@@ -31,7 +29,7 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BlocProvider.of<LoginBloc>(context).add(LoginInitialEvent());
+    BlocProvider.of<LoginBloc>(context, listen: false).add(LoginInitialEvent());
     return FullGradientScaffold(
       appBar: _buildAppBar(context),
       body: ProgressHud(
@@ -131,7 +129,7 @@ class LoginScreen extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 64,
+          height: 20,
         ),
         _buildForgetPasswordButton(context),
         Padding(

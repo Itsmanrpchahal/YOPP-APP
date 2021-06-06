@@ -47,7 +47,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need to access mic to send audio message.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We need to access the camera to take a picture for your profile in the app.</string>
+	<string>We need to access the photos to take a picture for your profile in the app.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

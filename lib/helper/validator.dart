@@ -16,9 +16,9 @@ class Validator {
     return true;
   }
 
-  static bool isValidPassword(String password, [int minLength = 6]) {
+  static String checkPasswordValidity(String password, [int minLength = 6]) {
     if (password == null || password.isEmpty) {
-      return false;
+      return "Password should be atleast 6 characters.";
     }
 
     // bool hasUppercase = password.contains(new RegExp(r'[A-Z]'));
@@ -26,9 +26,16 @@ class Validator {
     // bool hasLowercase = password.contains(new RegExp(r'[a-z]'));
     // bool hasSpecialCharacters =
     //     password.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-    bool hasMinLength = password.length >= minLength;
     bool hasNoSpace = !password.contains(' ');
+    if (!hasNoSpace) {
+      return "Password should not have space.";
+    }
 
-    return hasMinLength & hasNoSpace;
+    bool hasMinLength = password.length >= minLength;
+    if (!hasMinLength) {
+      return "Password should be atleast 6 characters.";
+    }
+
+    return null;
   }
 }

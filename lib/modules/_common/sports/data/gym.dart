@@ -4,7 +4,7 @@ import '../sports_category.dart';
 
 Sport createGym(int id) {
   var weightLifting =
-      SportStyle(id: 0, name: "Weight lifting", requirements: []);
+      SportStyle(id: 0, name: "Weight Lifting", requirements: []);
 
   return Sport(
       id: id,

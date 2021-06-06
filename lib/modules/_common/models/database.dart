@@ -22,4 +22,6 @@ class OnlineStatusDatabase {
 
     await databaseRef.onDisconnect().update(presenceStatusFalse);
   }
+
+  static Future<void> apiOnlineConnection(String uid) async {}
 }

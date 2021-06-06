@@ -17,3 +17,14 @@ extension genderName on Gender {
     return name;
   }
 }
+
+Gender parseGenderFromString(String value) {
+  if (value.toLowerCase() == Gender.male.name.toLowerCase()) {
+    return Gender.male;
+  } else if (value.toLowerCase() == Gender.female.name.toLowerCase()) {
+    return Gender.female;
+  } else if (value.toLowerCase() == Gender.any.name.toLowerCase()) {
+    return Gender.any;
+  }
+  return Gender.any;
+}

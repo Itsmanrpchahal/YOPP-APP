@@ -2,25 +2,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:yopp/helper/app_color/app_colors.dart';
-import 'package:timeago/timeago.dart' as TimeAgo;
 
-import 'package:yopp/helper/app_color/color_helper.dart';
 import 'package:yopp/modules/bottom_navigation/activity/bloc/activity.dart';
 import 'package:yopp/modules/bottom_navigation/activity/bloc/activity_bloc.dart';
 import 'package:yopp/modules/bottom_navigation/activity/bloc/activity_event.dart';
 import 'package:yopp/modules/bottom_navigation/activity/bloc/activity_state.dart';
 import 'package:yopp/modules/bottom_navigation/chat/bloc/chat_description.dart';
 import 'package:yopp/modules/bottom_navigation/chat/chat_detail/ui/chat_detail_screen.dart';
+
 import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender.dart';
+import 'package:yopp/widgets/app_bar/default_app_bar.dart';
 
-import 'package:yopp/widgets/app_bar/transparent_appbar_with_cross.dart';
-import 'package:yopp/widgets/body/full_gradient_scaffold.dart';
 import 'package:yopp/widgets/icons/circular_profile_icon.dart';
-
-import 'package:yopp/widgets/custom_clipper/half_curve_clipper.dart';
 import 'package:yopp/widgets/progress_hud/progress_hud.dart';
 
 class ActivityScreen extends StatefulWidget {
@@ -41,84 +38,77 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   loadLatestActivities(BuildContext context) {
-    BlocProvider.of<ActivityBloc>(context).add(GetLatestActivityList());
+    BlocProvider.of<ActivityBloc>(context, listen: false)
+        .add(GetLatestActivityList());
   }
 
   loadPreviousActivities(BuildContext context) {
-    BlocProvider.of<ActivityBloc>(context).add(GetPreviousActivityList());
+    BlocProvider.of<ActivityBloc>(context, listen: false)
+        .add(GetPreviousActivityList());
   }
 
   @override
   Widget build(BuildContext context) {
-    return FullGradientScaffold(
-      extendBodyBehindAppBar: false,
-      appBar: TransparentAppBarWithCrossAction(
-        context: context,
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: BlocListener<ActivityBloc, ActivityState>(
-        listener: (context, state) async {
-          ProgressHud.of(context).dismiss();
-          switch (state.status) {
-            case ActivityStatus.initial:
-              break;
-            case ActivityStatus.loadingInitial:
-              ProgressHud.of(context)
-                  .show(ProgressHudType.loading, state.serviceMessage);
-              break;
-            case ActivityStatus.loadingPrevious:
-              ProgressHud.of(context)
-                  .show(ProgressHudType.loading, state.serviceMessage);
-              break;
-            case ActivityStatus.loadingInitialSuccess:
-              break;
-            case ActivityStatus.loadingPreviousSuccess:
-              _refreshController.refreshCompleted();
-              _refreshController.loadComplete();
-              break;
-            case ActivityStatus.replying:
-              ProgressHud.of(context)
-                  .show(ProgressHudType.loading, state.serviceMessage);
-              break;
-            case ActivityStatus.replied:
-              await ProgressHud.of(context).showAndDismiss(
-                  ProgressHudType.success, state.serviceMessage);
-              loadLatestActivities(context);
-              break;
-            case ActivityStatus.failed:
-              _refreshController.refreshCompleted();
-              break;
-          }
+    return ProgressHud(
+      child: Scaffold(
+        appBar: new DefaultAppBar(
+          context: context,
+          titleText: "Notifications",
+        ),
+        body: BlocListener<ActivityBloc, ActivityState>(
+          listener: (context, state) async {
+            ProgressHud.of(context).dismiss();
+            switch (state.status) {
+              case ActivityStatus.initial:
+                break;
+              case ActivityStatus.loadingInitial:
+                ProgressHud.of(context)
+                    .show(ProgressHudType.loading, state.serviceMessage);
+                break;
+              case ActivityStatus.loadingPrevious:
+                ProgressHud.of(context)
+                    .show(ProgressHudType.loading, state.serviceMessage);
+                break;
+              case ActivityStatus.loadingInitialSuccess:
+                break;
+              case ActivityStatus.loadingPreviousSuccess:
+                _refreshController.refreshCompleted();
+                _refreshController.loadComplete();
+                break;
+              case ActivityStatus.replying:
+                ProgressHud.of(context)
+                    .show(ProgressHudType.loading, state.serviceMessage);
+                break;
+              case ActivityStatus.replied:
+                await ProgressHud.of(context).showAndDismiss(
+                    ProgressHudType.success, state.serviceMessage);
+                loadLatestActivities(context);
+                break;
+              case ActivityStatus.failed:
+                _refreshController.refreshCompleted();
+                break;
+            }
 
-          setState(() {
-            activities = state.activities;
-          });
-        },
-        child: _buildBody(context),
+            setState(() {
+              activities = state.activities;
+            });
+          },
+          child: _buildBody(context),
+        ),
       ),
     );
   }
 
   Widget _buildBody(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 8),
-      child: ClipPath(
-        clipper: HalfCurveClipper(),
-        child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(color: Hexcolor("#F2F2F2")),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeading(context),
-                SizedBox(height: 20),
-                Expanded(child: _buildActivityList(context)),
-              ],
-            )),
-      ),
-    );
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 20),
+            Expanded(child: _buildActivityList(context)),
+          ],
+        ));
   }
 
   Widget _buildActivityList(BuildContext context) {
@@ -150,7 +140,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
       },
       controller: _refreshController,
       child: ListView.builder(
-          padding: EdgeInsets.only(top: 20),
           itemCount: activities.length,
           itemBuilder: (context, index) {
             final activity = activities[index];
@@ -160,7 +149,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 _showChatDetail(context, activity.chatDescription);
               },
               child: _buildInitalActivityItem(
-                  context: context, activity: activity),
+                context: context,
+                activity: activity,
+              ),
             );
           }),
     );
@@ -205,157 +196,124 @@ class _ActivityScreenState extends State<ActivityScreen> {
       name = otherUserName + " sent you a message!";
     }
 
-    final currentTime = DateTime.now();
-    final timeDifference =
-        currentTime.difference(activity.chatDescription.lastMessage.timeStamp);
-    final timeAgo = TimeAgo.format(
-      currentTime.subtract(timeDifference),
-      locale: 'en_short',
-    );
+    // final currentTime = DateTime.now();
+    // final timeDifference =
+    //     currentTime.difference(activity.chatDescription.lastMessage.timeStamp);
+    // final timeAgo = TimeAgo.format(
+    //   currentTime.subtract(timeDifference),
+    //   locale: 'en_short',
+    // );
 
+    var timeDescription = "";
+
+    timeDescription = DateFormat.yMd()
+        .add_jm()
+        .format(activity.chatDescription.lastMessage.timeStamp);
     return Container(
-      margin: EdgeInsets.only(left: 18, right: 18, bottom: 8),
-      clipBehavior: Clip.none,
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-            bottomLeft: Radius.circular(8),
-            bottomRight: Radius.circular(20),
-          ),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black12,
-                offset: Offset(0, 40),
-                blurRadius: 60,
-                spreadRadius: 0)
-          ]),
-      child: Padding(
-        padding: EdgeInsets.only(left: 16, top: 12, right: 8, bottom: 12),
-        child: Column(
-          children: [
-            Container(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+      margin: EdgeInsets.only(left: 32, right: 32, bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            clipBehavior: Clip.none,
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black12,
+                      offset: Offset(0, 2),
+                      blurRadius: 16,
+                      spreadRadius: 0)
+                ]),
+            child: Padding(
+              padding: EdgeInsets.only(top: 12, right: 8, bottom: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildProfileIcon(
-                    imageUrl,
-                    gender,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Container(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        name == null
-                            ? Container()
-                            : Text(
-                                name ?? "",
+                        _buildProfileIcon(
+                          imageUrl,
+                          gender,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              name == null
+                                  ? Container()
+                                  : Text(
+                                      name ?? "",
+                                      style: TextStyle(
+                                          color: AppColors.green,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14),
+                                    ),
+                              SizedBox(height: 4),
+                              Text(
+                                message,
+                                maxLines: 2,
+                                softWrap: true,
                                 style: TextStyle(
-                                    color: Hexcolor("#222222"),
-                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.green,
+                                    fontWeight: FontWeight.w500,
                                     fontSize: 14),
                               ),
-                        SizedBox(height: 4),
-                        Text(
-                          message,
-                          maxLines: 2,
-                          softWrap: true,
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14),
-                        ),
-                        SizedBox(height: 4),
-                        Container(
-                          alignment: Alignment.bottomLeft,
-                          child: Text(
-                            activity.chatDescription.sportName ?? "",
-                            style: TextStyle(
-                                color: Colors.grey,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13),
+                            ],
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          timeAgo,
-                          style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12),
                         ),
                       ],
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.grey,
-                      size: 18,
+                    padding: const EdgeInsets.only(left: 48),
+                    child: FlatButton(
+                      height: 20,
+                      minWidth: 60,
+                      padding: EdgeInsets.zero,
+                      onPressed: () =>
+                          _showChatDetail(context, activity.chatDescription),
+                      child: Text(
+                        "CHAT",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w300,
+                            fontSize: 10),
+                      ),
+                      color: AppColors.lightGreen,
+                      textColor: Colors.white,
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            timeDescription,
+            style: TextStyle(
+              color: AppColors.green,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildProfileIcon(String imageUrl, Gender gender) {
-    return Container(
-      height: 60,
-      width: 60,
-      child: Stack(
-        alignment: AlignmentDirectional.center,
-        children: [
-          CircularProfileIcon(
-            imageUrl: imageUrl,
-            gender: gender,
-            size: 60,
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Transform.translate(
-              offset: Offset(8, 8),
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.white,
-                child: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: AppColors.green,
-                  child: Icon(
-                    CupertinoIcons.chat_bubble_2_fill,
-                    color: Colors.white,
-                    size: 14,
-                  ),
-                ),
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  _buildHeading(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(left: 30, right: 30, top: 30),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Notifications",
-            style: TextStyle(
-                color: Colors.black, fontWeight: FontWeight.w600, fontSize: 36),
-          ),
-        ],
+    return Transform.translate(
+      offset: Offset(-14, 0),
+      child: CircularProfileIconWithShadow(
+        imageUrl: imageUrl,
+        gender: gender,
+        size: 40,
       ),
     );
   }
@@ -373,6 +331,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   _showChatDetail(BuildContext context, ChatDescription chatDescription) {
-    Navigator.of(context).push(ChatDetailScreen.route(chatDescription));
+    print("_showChatDetail");
+    Navigator.of(context).push(ChatDetailScreen.route(
+      chatRoomId: chatDescription.chatRoomId,
+      chatDescription: chatDescription,
+    ));
   }
 }

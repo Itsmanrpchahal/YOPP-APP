@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/_common/models/interest.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
 
 enum AuthStatus {
   checking,
@@ -95,25 +96,29 @@ class AuthState extends Equatable {
   final AuthStatus status;
   final UserProfile user;
   final String message;
+  final List<InterestOption> interestList;
 
   AuthState({
     this.status = AuthStatus.checking,
     this.user,
     this.message = "",
+    this.interestList = const [],
   });
 
   AuthState copyWith({
     AuthStatus status,
     UserProfile user,
     String message,
+    List<InterestOption> interestList,
   }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       message: message ?? "",
+      interestList: interestList ?? this.interestList,
     );
   }
 
   @override
-  List<Object> get props => [status, user, message];
+  List<Object> get props => [status, user, message, interestList];
 }

@@ -7,13 +7,11 @@ import 'package:yopp/modules/authentication/bloc/authentication_bloc.dart';
 import 'package:yopp/modules/authentication/bloc/authentication_event.dart';
 import 'package:yopp/modules/bottom_navigation/settings/my_data/delete_options.dart';
 import 'package:yopp/routing/transitions.dart';
+import 'package:yopp/widgets/app_bar/default_app_bar.dart';
 
-import 'package:yopp/widgets/app_bar/transparent_appbar_with_cross.dart';
-import 'package:yopp/widgets/body/full_gradient_scaffold.dart';
 import 'package:yopp/widgets/buttons/gradient_check_button.dart';
 import 'package:yopp/widgets/buttons/rounded_button.dart';
 
-import 'package:yopp/widgets/custom_clipper/half_curve_clipper.dart';
 import 'package:yopp/widgets/progress_hud/progress_hud.dart';
 
 class ConfirmDeleteAccountScreen extends StatefulWidget {
@@ -40,76 +38,58 @@ class _ConfirmDeleteAccountScreenState
     extends State<ConfirmDeleteAccountScreen> {
   @override
   Widget build(BuildContext context) {
-    return FullGradientScaffold(
-      extendBodyBehindAppBar: false,
-      appBar: TransparentAppBarWithCrossAction(
-        context: context,
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) async {
-          ProgressHud.of(context).dismiss();
-          print(state.status);
-          print(state.message);
+    return ProgressHud(
+      child: Scaffold(
+        appBar: new DefaultAppBar(
+          titleText: "Delete Account",
+          context: context,
+        ),
+        body: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) async {
+            ProgressHud.of(context).dismiss();
+            print(state.status);
+            print(state.message);
 
-          switch (state.status) {
-            case AuthStatus.updating:
-              ProgressHud.of(context)
-                  .show(ProgressHudType.loading, state.message);
-              break;
+            switch (state.status) {
+              case AuthStatus.updating:
+                ProgressHud.of(context)
+                    .show(ProgressHudType.loading, state.message);
+                break;
 
-            case AuthStatus.unauthenticated:
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              break;
-            case AuthStatus.error:
-              await ProgressHud.of(context)
-                  .showAndDismiss(ProgressHudType.error, state.message);
-              break;
+              case AuthStatus.unauthenticated:
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                break;
+              case AuthStatus.error:
+                await ProgressHud.of(context)
+                    .showAndDismiss(ProgressHudType.error, state.message);
+                break;
 
-            default:
-              ProgressHud.of(context).dismiss();
-              break;
-          }
-        },
-        child: _buildBody(context),
+              default:
+                break;
+            }
+          },
+          child: _buildBody(context),
+        ),
       ),
     );
   }
 
   Widget _buildBody(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 8),
-      child: ClipPath(
-        clipper: HalfCurveClipper(),
-        child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(color: Hexcolor("#F2F2F2")),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.only(left: 30, right: 30, top: 30),
-                  child: Text(
-                    "Delete Account",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 36),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                      alignment: Alignment.center,
-                      child: _buildBodyDetail(context)),
-                ),
-                SizedBox(height: 16),
-              ],
-            )),
-      ),
-    );
+        width: double.infinity,
+        decoration: BoxDecoration(color: Hexcolor("#F2F2F2")),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Align(
+                  alignment: Alignment.center,
+                  child: _buildBodyDetail(context)),
+            ),
+            SizedBox(height: 16),
+          ],
+        ));
   }
 
   Widget _buildBodyDetail(BuildContext context) {
@@ -178,11 +158,12 @@ class _ConfirmDeleteAccountScreenState
   }
 
   _deleteAccount(BuildContext context) {
-    BlocProvider.of<AuthBloc>(context)
+    BlocProvider.of<AuthBloc>(context, listen: false)
         .add(DeleteAccountRequestedEvent(widget.selectedDeleteOption.name));
   }
 
   _pauseAccount(BuildContext context) {
-    BlocProvider.of<AuthBloc>(context).add(PauseAccountRequestedEvent());
+    BlocProvider.of<AuthBloc>(context, listen: false)
+        .add(PauseAccountRequestedEvent());
   }
 }

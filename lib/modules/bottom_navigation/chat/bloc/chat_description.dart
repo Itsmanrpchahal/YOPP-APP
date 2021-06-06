@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
+
 import 'package:yopp/modules/bottom_navigation/chat/bloc/chat_message.dart';
 
 import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender.dart';
@@ -47,11 +48,13 @@ class ChatDescription extends Equatable {
     this.user2Gender,
     this.lastMessage,
     this.createdAt,
-    this.sportName,
+    this.blockedBy,
+    this.connectionEndedBy,
   });
 
   final String chatRoomId;
   final List<String> users;
+  final List<String> blockedBy;
   final String user1Id;
   final String user2Id;
 
@@ -65,14 +68,15 @@ class ChatDescription extends Equatable {
   final Gender user2Gender;
 
   final ChatMessage lastMessage;
-  final String sportName;
-
   final DateTime createdAt;
+
+  final String connectionEndedBy;
 
   ChatDescription copyWith(ChatMessage message) {
     return ChatDescription(
       chatRoomId: this.chatRoomId,
       users: this.users,
+      blockedBy: this.blockedBy,
       user1Id: this.user1Id,
       user2Id: this.user2Id,
       user1Name: this.user1Name,
@@ -82,7 +86,7 @@ class ChatDescription extends Equatable {
       user1Profile: this.user1Profile,
       user2Profile: this.user2Profile,
       lastMessage: message ?? this.lastMessage,
-      sportName: this.sportName,
+      connectionEndedBy: this.connectionEndedBy,
       createdAt: this.createdAt,
     );
   }
@@ -100,6 +104,12 @@ class ChatDescription extends Equatable {
         users: json["users"] == null
             ? []
             : List<String>.from(json["users"].map((x) => x)),
+        blockedBy: json["blockedBy"] == null
+            ? []
+            : List<String>.from(json["blockedBy"].map((x) => x)),
+        connectionEndedBy: json["connectionEndedBy"] == null
+            ? null
+            : json["connectionEndedBy"],
         user1Name: json["user1Name"] == null ? null : json["user1Name"],
         user2Name: json["user2Name"] == null ? null : json["user2Name"],
         user1Profile:
@@ -118,7 +128,6 @@ class ChatDescription extends Equatable {
         createdAt: json["createdAt"] == null
             ? null
             : DateTime.fromMicrosecondsSinceEpoch(json["createdAt"]),
-        sportName: json["sportName"] == null ? null : json["sportName"],
       );
 
   Map<String, dynamic> toJson() {
@@ -130,6 +139,10 @@ class ChatDescription extends Equatable {
 
     if (users != null) {
       json["users"] = users;
+    }
+
+    if (blockedBy != null) {
+      json["blockedBy"] = blockedBy;
     }
 
     if (user1Id != null) {
@@ -172,8 +185,8 @@ class ChatDescription extends Equatable {
       json["createdAt"] = createdAt.microsecondsSinceEpoch;
     }
 
-    if (sportName != null) {
-      json['sportName'] = sportName;
+    if (connectionEndedBy != null) {
+      json["connectionEndedBy"] = connectionEndedBy;
     }
 
     return json;
@@ -183,6 +196,8 @@ class ChatDescription extends Equatable {
   List<Object> get props => [
         chatRoomId,
         users,
+        blockedBy,
+        connectionEndedBy,
         user1Id,
         user2Id,
         user1Name,
@@ -193,6 +208,5 @@ class ChatDescription extends Equatable {
         user2Gender,
         lastMessage,
         createdAt,
-        sportName,
       ];
 }

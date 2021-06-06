@@ -7,7 +7,7 @@ import 'package:yopp/routing/transitions.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   static Route get route {
-    return FadeRoute(
+    return SlideRoute(
       builder: (context) => PrivacyPolicyScreen(),
     );
   }

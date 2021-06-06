@@ -31,16 +31,15 @@ class _AuthScreenState extends State<AuthScreen> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-  
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       String platformVersion = await FlutterSimCountryCode.simCountryCode;
-      print("platformVersion:" + platformVersion ?? "");
+      // print("platformVersion:" + platformVersion ?? "");
 
       BlocProvider.of<RegisterBloc>(context, listen: false)
           .add(GotCountryNameEvent(countryName: platformVersion));
     } on PlatformException catch (exception) {
-      print('Failed to get platform version.');
+      // print('Failed to get platform version.');
       FirebaseCrashlytics.instance.log('AuthScreen initPlatformState');
       FirebaseCrashlytics.instance.log('Failed to get platform version.');
       FirebaseCrashlytics.instance
@@ -55,6 +54,18 @@ class _AuthScreenState extends State<AuthScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(child: _buildLogoSection(context)),
+          Container(
+            padding: EdgeInsets.all(32),
+            alignment: Alignment.bottomCenter,
+            child: Text(
+              "FIND LOCAL PEOPLE TO PRACTISE YOUR SPORT WITH. FIND PEOPLE CLOSE BY ANYTIME, ANYWHERE.",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
           Expanded(child: _buildAuthSection(context)),
         ],
       ),
@@ -65,8 +76,8 @@ class _AuthScreenState extends State<AuthScreen> {
     final length = min(
         MediaQuery.of(context).size.width, MediaQuery.of(context).size.height);
     return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Spacer(),
         Container(
           child: Image.asset(
             "assets/icons/white_app_logo.png",
@@ -87,7 +98,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
     return Column(
       children: [
-        Spacer(flex: 2),
+        Spacer(flex: 1),
         Container(
           width: width * 0.75,
           child: Row(

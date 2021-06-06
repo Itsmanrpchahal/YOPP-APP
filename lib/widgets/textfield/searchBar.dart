@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yopp/helper/app_color/app_colors.dart';
 
 typedef ValueCallBack = Function(String);
 
@@ -43,7 +44,7 @@ class _SearchBarState extends State<SearchBar> {
         controller: _searchBarController,
         textAlign: TextAlign.left,
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.green,
           fontWeight: FontWeight.bold,
         ),
         onChanged: (value) {
@@ -64,7 +65,7 @@ class _SearchBarState extends State<SearchBar> {
           labelText: 'Search for...',
           alignLabelWithHint: false,
           labelStyle: TextStyle(
-            color: Colors.white70,
+            color: AppColors.green,
             fontWeight: FontWeight.bold,
           ),
           prefixIcon: Padding(
@@ -72,7 +73,7 @@ class _SearchBarState extends State<SearchBar> {
             child: Icon(
               CupertinoIcons.search,
               size: 30,
-              color: Colors.white54,
+              color: AppColors.green,
             ),
           ),
           suffixIcon: _searchBarController.text.isEmpty
@@ -84,7 +85,7 @@ class _SearchBarState extends State<SearchBar> {
                     Icons.clear,
                     size: 30,
                   ),
-                  color: Colors.white54,
+                  color: AppColors.green,
                   onPressed: () {
                     _searchBarController.clear();
                     widget.onChange(_searchBarController.text);

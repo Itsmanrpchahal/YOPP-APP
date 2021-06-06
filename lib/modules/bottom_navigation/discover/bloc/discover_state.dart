@@ -1,56 +1,99 @@
 import 'package:equatable/equatable.dart';
 import 'package:yopp/modules/bottom_navigation/discover/bloc/discovered_user.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/pages/search/search_page.dart';
+
+import 'discover_event.dart';
 
 enum DiscoverServiceStatus {
   initial,
   noLocation,
   loading,
   loaded,
-  failure,
-  swping,
-  liked,
-  disliked,
-  matched,
-  reloaded,
+  loadingFailed,
+  loadingAnotherPage,
+  loadedAnotherPage,
+  loadingAnotherPageFailed,
 }
 
 class DiscoverState extends Equatable {
   final DiscoverServiceStatus status;
   final String message;
-  final List<DiscoveredUser> users;
+  final List<DiscoveredUserData> data;
+  final Meta meta;
   final UserProfile user;
-  final DiscoveredUser matchedUser;
-  final Meta metaData;
+  final Interest selectedInterest;
+
+  final int skip;
+  final SearchBy searchBy;
+  final SearchRange searchRange;
+  final bool showOnlineOnly;
+
+  final int interestCount;
+  final int availableCount;
+  final int specificCount;
 
   DiscoverState({
     this.status = DiscoverServiceStatus.initial,
     this.message = "",
     this.user,
-    this.matchedUser,
-    this.metaData,
-    this.users = const [],
+    this.meta,
+    this.data = const [],
+    this.skip = 0,
+    this.searchBy = SearchBy.category,
+    this.searchRange,
+    this.showOnlineOnly = false,
+    this.selectedInterest,
+    this.interestCount,
+    this.availableCount,
+    this.specificCount,
   });
 
   DiscoverState copyWith({
     DiscoverServiceStatus status,
     String message,
-    List<DiscoveredUser> users,
     UserProfile user,
-    DiscoveredUser matchedUser,
-    Meta metaData,
+    int skip,
+    SearchBy searchBy,
+    SearchRange searchRange,
+    bool showOnlineOnly,
+    Interest selectedInterest,
+    int interestCount,
+    int availableCount,
+    int specificCount,
+    List<DiscoveredUserData> data,
+    Meta meta,
   }) {
     return DiscoverState(
       status: status ?? this.status,
       message: message ?? this.message,
-      users: users ?? this.users,
+      meta: meta ?? this.meta,
+      data: data ?? this.data,
       user: user ?? this.user,
-      matchedUser: matchedUser ?? this.matchedUser,
-      metaData: metaData ?? this.metaData,
+      skip: skip ?? this.skip,
+      searchBy: searchBy ?? this.searchBy,
+      searchRange: searchRange ?? this.searchRange,
+      showOnlineOnly: showOnlineOnly ?? this.showOnlineOnly,
+      selectedInterest: selectedInterest ?? this.selectedInterest,
+      interestCount: interestCount ?? this.interestCount,
+      availableCount: availableCount ?? this.availableCount,
+      specificCount: specificCount ?? this.specificCount,
     );
   }
 
   @override
-  List<Object> get props =>
-      [status, message, users, matchedUser, user, metaData];
+  List<Object> get props => [
+        status,
+        message,
+        meta,
+        data,
+        user,
+        searchBy,
+        searchRange,
+        showOnlineOnly,
+        selectedInterest,
+        interestCount,
+        availableCount,
+        specificCount,
+      ];
 }

@@ -77,6 +77,20 @@ enum SkillLevel {
   all,
 }
 
+SkillLevel parseSkillLevelFromString(String value) {
+  if (value.toLowerCase() == SkillLevel.beginner.name.toLowerCase()) {
+    return SkillLevel.beginner;
+  } else if (value.toLowerCase() ==
+      SkillLevel.intermediate.name.toLowerCase()) {
+    return SkillLevel.intermediate;
+  } else if (value.toLowerCase() == SkillLevel.expert.name.toLowerCase()) {
+    return SkillLevel.expert;
+  } else if (value.toLowerCase() == SkillLevel.all.name.toLowerCase()) {
+    return SkillLevel.all;
+  }
+  return SkillLevel.all;
+}
+
 extension skillName on SkillLevel {
   String get name {
     String name;

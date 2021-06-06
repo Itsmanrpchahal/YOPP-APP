@@ -19,6 +19,14 @@ class AppColors {
     return Hexcolor('#F77A7F');
   }
 
+  static Color get darkGreen {
+    return Hexcolor('#0C5240');
+  }
+
+  static Color get onlineGreen {
+    return Hexcolor('#39AA3E');
+  }
+
   static Color get green {
     return Hexcolor('#14B28B');
   }

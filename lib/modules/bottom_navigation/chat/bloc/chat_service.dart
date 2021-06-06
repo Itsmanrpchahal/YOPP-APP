@@ -6,15 +6,19 @@ import 'package:yopp/helper/firebase_constants.dart';
 import 'package:yopp/modules/_common/models/notificationModel.dart';
 import 'package:yopp/modules/bottom_navigation/chat/bloc/chat_description.dart';
 import 'package:yopp/modules/bottom_navigation/chat/bloc/chat_message.dart';
-import 'package:yopp/modules/bottom_navigation/discover/bloc/discovered_user.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/pages/connections/bloc/connections_bloc.dart';
 
 abstract class ChatService {
-  Future<ChatDescription> createChatRoom(
-      UserProfile user, DiscoveredUser matchedUser);
+  Future<ChatDescription> createChatRoomConnection(
+    UserProfile user,
+    AddConnectionData otherUser,
+    String connectionId,
+  );
   Future<List<ChatDescription>> getChatHistory(String userId);
   Stream<List<ChatDescription>> getChatHistoryStream(String userId);
   Future<List<ChatMessage>> getFewLatestMessages(String chatRoomId, int limit);
+  Future<ChatDescription> getChatRoomDescription(String chatRoomId);
 
   Future<List<ChatMessage>> getFewPreviousMessages(
       String chatRoomId, int lastTimeStamp, int limit);
@@ -23,7 +27,37 @@ abstract class ChatService {
   Future<void> postChatMessage(
       ChatDescription chatDescription, ChatMessage chatMessage);
 
-  Future<void> removeSelfFromChatRoom(String chatRoomId);
+  Future<void> deleteChatRoom(String chatRoomId);
+
+  Future<void> removeConnectionToChatRoom({
+    @required String chatRoomId,
+    @required String endedByUid,
+  });
+
+  Future<void> resetConnectionToChatRoom({
+    @required String chatRoomId,
+    @required String uid,
+  });
+
+  Future<void> removeUsersFromChatRoom({
+    @required String chatRoomId,
+    @required List<String> uids,
+  });
+
+  Future<void> addUserToChatRoom({
+    @required String chatRoomId,
+    @required List<String> uids,
+  });
+
+  Future<void> removeBlockFromChatRoom({
+    @required String chatRoomId,
+    @required List<String> uids,
+  });
+
+  Future<void> addBlockToChatRoom({
+    @required String chatRoomId,
+    @required List<String> uids,
+  });
 
   Future<void> removeChatMessageForSelf({
     @required String chatRoomId,
@@ -37,25 +71,26 @@ abstract class ChatService {
 
 class FirebaseChatService extends ChatService {
   @override
-  Future<ChatDescription> createChatRoom(
-      UserProfile user, DiscoveredUser matchedUser) async {
+  Future<ChatDescription> createChatRoomConnection(
+    UserProfile user,
+    AddConnectionData matchedUser,
+    String connectionId,
+  ) async {
     try {
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
       final createdTime = DateTime.now();
-      final chatId =
-          _createChatId(user.selectedSport.name, user.uid, matchedUser.uid);
 
       final ChatMessage chatMessage = ChatMessage(
-          messageId: chatId,
-          message: "Congratulations, You Matched!!",
+          messageId: connectionId,
+          message: "Congratulations, You have a new connection!!",
           timeStamp: createdTime,
           sender: "Admin",
           users: [user.uid, matchedUser.uid],
           type: "Text");
 
       final chatDescription = ChatDescription(
-        chatRoomId: chatId,
+        chatRoomId: connectionId,
         user1Id: user.uid,
         user2Id: matchedUser.uid,
         users: [user.uid, matchedUser.uid],
@@ -67,17 +102,19 @@ class FirebaseChatService extends ChatService {
         user2Gender: matchedUser.gender,
         lastMessage: chatMessage,
         createdAt: createdTime,
-        sportName: user.selectedSport.name,
+        blockedBy: null,
+        connectionEndedBy: null,
       );
 
-      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatId);
-      batch.set(chatRoomRef, chatDescription.toJson(), SetOptions(merge: true));
+      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(connectionId);
+      batch.set(
+          chatRoomRef, chatDescription.toJson(), SetOptions(merge: false));
 
       final userNotification = NotificationModel(
           silent: true,
           userId: user.uid,
-          title: "Congratulations, You have a new match.",
-          subtitle: user.selectedSport.name,
+          title: matchedUser.name + " is added as a new Connection",
+          subtitle: "",
           createdAt: DateTime.now(),
           type: NotificationType.match,
           chatDescription: chatDescription);
@@ -88,8 +125,8 @@ class FirebaseChatService extends ChatService {
       final otherUserNotification = NotificationModel(
         silent: false,
         userId: matchedUser.uid,
-        title: "Congratulations, You have a new match.",
-        subtitle: user.selectedSport.name,
+        title: "Congratulations, You have a new connection.",
+        subtitle: "",
         type: NotificationType.match,
         createdAt: DateTime.now(),
         chatDescription: chatDescription,
@@ -103,9 +140,8 @@ class FirebaseChatService extends ChatService {
 
       return chatDescription;
     } on FirebaseException catch (e) {
-      FirebaseCrashlytics.instance.log("createChatRoom");
-      FirebaseCrashlytics.instance.log(user.toJson().toString());
-      FirebaseCrashlytics.instance.log(matchedUser.toJson().toString());
+      FirebaseCrashlytics.instance.log("createChatRoom Connection");
+
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
 
@@ -113,14 +149,23 @@ class FirebaseChatService extends ChatService {
     }
   }
 
-  String _createChatId(String sportName, String userId, String otherUserId) {
-    var chatId = sportName + "_";
-    if (userId.compareTo(otherUserId) > 0) {
-      chatId += userId + "_" + otherUserId;
-    } else {
-      chatId += otherUserId + "_" + userId;
+  Future<ChatDescription> getChatRoomDescription(String chatRoomId) async {
+    try {
+      final snapshot =
+          await FirebaseConstants.chatCollectionRef.doc(chatRoomId).get();
+      if (snapshot.exists) {
+        final data = ChatDescription.fromJson(snapshot.data());
+        return data;
+      }
+      return null;
+    } on FirebaseException catch (e) {
+      print(e.toString());
+      FirebaseCrashlytics.instance.log("getChatRoomDescription");
+
+      FirebaseCrashlytics.instance
+          .recordFlutterError(FlutterErrorDetails(exception: e));
+      throw Exception(e.message);
     }
-    return chatId;
   }
 
   @override
@@ -136,7 +181,6 @@ class FirebaseChatService extends ChatService {
       return data;
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getChatHistory");
-      FirebaseCrashlytics.instance.log(userId);
 
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
@@ -160,8 +204,6 @@ class FirebaseChatService extends ChatService {
       return snapshotStream;
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getChatHistoryStream");
-      FirebaseCrashlytics.instance.log(userId);
-
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
 
@@ -191,7 +233,7 @@ class FirebaseChatService extends ChatService {
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getFewLatestMessages");
       FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
-      FirebaseCrashlytics.instance.log(chatRoomId);
+      FirebaseCrashlytics.instance.log(chatRoomId ?? "ChatRoom");
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
 
@@ -222,8 +264,8 @@ class FirebaseChatService extends ChatService {
       } on FirebaseException catch (e) {
         FirebaseCrashlytics.instance.log("getFewPreviousMessages");
         FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
-        FirebaseCrashlytics.instance.log(chatRoomId);
-        FirebaseCrashlytics.instance.log(lastTimeStamp.toString());
+        FirebaseCrashlytics.instance.log(chatRoomId ?? "CHATROOMID");
+
         FirebaseCrashlytics.instance
             .recordFlutterError(FlutterErrorDetails(exception: e));
         throw Exception(e.message);
@@ -237,6 +279,7 @@ class FirebaseChatService extends ChatService {
   Stream<List<ChatMessage>> getChatMessageStream(
       String chatRoomId, int latestMessageTimeStamp) {
     final condition = latestMessageTimeStamp ?? 0;
+
     try {
       final userId = FirebaseAuth.instance.currentUser.uid;
       final snapshotStream = FirebaseConstants.chatCollectionRef
@@ -253,8 +296,8 @@ class FirebaseChatService extends ChatService {
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getChatMessageStream");
       FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
-      FirebaseCrashlytics.instance.log(chatRoomId);
-      FirebaseCrashlytics.instance.log(latestMessageTimeStamp.toString());
+      FirebaseCrashlytics.instance.log(chatRoomId ?? "ChatRoomID");
+
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
       throw Exception(e.message);
@@ -315,9 +358,7 @@ class FirebaseChatService extends ChatService {
       await batch.commit();
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getChatMessageStream");
-      FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
-      FirebaseCrashlytics.instance.log(chatDescription.toJson().toString());
-      FirebaseCrashlytics.instance.log(message.toJson().toString());
+
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
       print(e);
@@ -341,25 +382,16 @@ class FirebaseChatService extends ChatService {
   }
 
   @override
-  Future<void> removeSelfFromChatRoom(String chatRoomId) async {
+  Future<void> deleteChatRoom(String chatRoomId) async {
     try {
-      final userId = FirebaseAuth.instance.currentUser.uid;
       final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatRoomId);
-
-      await chatRoomRef.update(
-        {
-          'users': FieldValue.arrayRemove(
-            [userId],
-          )
-        },
-      );
-    } on FirebaseException catch (e) {
-      FirebaseCrashlytics.instance.log("removeSelfFromChatRoom");
-      FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
-      FirebaseCrashlytics.instance.log(chatRoomId);
+      await chatRoomRef.delete();
+      return;
+    } on FirebaseException catch (e, stack) {
+      FirebaseCrashlytics.instance.log("deleteChatRoom");
 
       FirebaseCrashlytics.instance
-          .recordFlutterError(FlutterErrorDetails(exception: e));
+          .recordFlutterError(FlutterErrorDetails(exception: e, stack: stack));
 
       throw Exception(e.message);
     }
@@ -400,14 +432,154 @@ class FirebaseChatService extends ChatService {
       await batch.commit();
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("removeChatMessageForSelf");
-      FirebaseCrashlytics.instance.log(FirebaseAuth.instance.currentUser.uid);
-      FirebaseCrashlytics.instance.log(chatRoomId);
-      FirebaseCrashlytics.instance.log(messageId);
-      FirebaseCrashlytics.instance.log(lastMessage.toJson().toString());
-      FirebaseCrashlytics.instance.log(updateChatHistoryList.toString());
 
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
+
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<void> addBlockToChatRoom(
+      {String chatRoomId, List<String> uids}) async {
+    try {
+      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatRoomId);
+
+      await chatRoomRef.update(
+        {
+          'blockedBy': FieldValue.arrayUnion(
+            uids,
+          ),
+          'connectionEndedBy': FirebaseAuth.instance.currentUser.uid,
+          'users': FieldValue.delete(),
+        },
+      );
+    } on FirebaseException catch (e, stack) {
+      FirebaseCrashlytics.instance.log("addBlockToChatRoom");
+      FirebaseCrashlytics.instance.log(chatRoomId);
+      FirebaseCrashlytics.instance.log(uids.toString());
+      FirebaseCrashlytics.instance
+          .recordFlutterError(FlutterErrorDetails(exception: e, stack: stack));
+
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<void> removeBlockFromChatRoom(
+      {String chatRoomId, List<String> uids}) async {
+    try {
+      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatRoomId);
+
+      await chatRoomRef.update(
+        {
+          'blockedBy': FieldValue.arrayRemove(
+            uids,
+          )
+        },
+      );
+    } on FirebaseException catch (e, stack) {
+      FirebaseCrashlytics.instance.log("removeBlockFromChatRoom");
+      FirebaseCrashlytics.instance.log(chatRoomId);
+      FirebaseCrashlytics.instance.log(uids.toString());
+      FirebaseCrashlytics.instance
+          .recordFlutterError(FlutterErrorDetails(exception: e, stack: stack));
+
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<void> addUserToChatRoom({String chatRoomId, List<String> uids}) async {
+    try {
+      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatRoomId);
+
+      await chatRoomRef.update(
+        {
+          'users': FieldValue.arrayUnion(
+            uids,
+          )
+        },
+      );
+    } on FirebaseException catch (e, stack) {
+      FirebaseCrashlytics.instance.log("removeUserFromChatRoom");
+      FirebaseCrashlytics.instance.log(chatRoomId);
+      FirebaseCrashlytics.instance.log(uids.toString());
+      FirebaseCrashlytics.instance
+          .recordFlutterError(FlutterErrorDetails(exception: e, stack: stack));
+
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<void> removeUsersFromChatRoom(
+      {String chatRoomId, List<String> uids}) async {
+    try {
+      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatRoomId);
+
+      await chatRoomRef.update(
+        {
+          'users': FieldValue.arrayRemove(
+            uids,
+          )
+        },
+      );
+    } on FirebaseException catch (e, stack) {
+      FirebaseCrashlytics.instance.log("removeUserFromChatRoom");
+      FirebaseCrashlytics.instance.log(chatRoomId);
+      FirebaseCrashlytics.instance.log(uids.toString());
+      FirebaseCrashlytics.instance
+          .recordFlutterError(FlutterErrorDetails(exception: e, stack: stack));
+
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<void> removeConnectionToChatRoom({
+    @required String chatRoomId,
+    @required String endedByUid,
+  }) async {
+    try {
+      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatRoomId);
+
+      await chatRoomRef.update(
+        {
+          'connectionEndedBy': endedByUid,
+          'users': FieldValue.delete(),
+        },
+      );
+    } on FirebaseException catch (e, stack) {
+      FirebaseCrashlytics.instance.log("removeConnectionToChatRoom");
+      FirebaseCrashlytics.instance.log(chatRoomId);
+      FirebaseCrashlytics.instance.log(endedByUid);
+      FirebaseCrashlytics.instance
+          .recordFlutterError(FlutterErrorDetails(exception: e, stack: stack));
+      if (e.code == "not-found") {
+        return;
+      }
+
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<void> resetConnectionToChatRoom(
+      {String chatRoomId, String uid}) async {
+    try {
+      final chatRoomRef = FirebaseConstants.chatCollectionRef.doc(chatRoomId);
+
+      await chatRoomRef.update(
+        {'connectionEndedBy': null},
+      );
+    } on FirebaseException catch (e, stack) {
+      FirebaseCrashlytics.instance.log("resetConnectionToChatRoom");
+      FirebaseCrashlytics.instance.log(chatRoomId);
+      FirebaseCrashlytics.instance.log(uid);
+      FirebaseCrashlytics.instance
+          .recordFlutterError(FlutterErrorDetails(exception: e, stack: stack));
 
       throw Exception(e.message);
     }

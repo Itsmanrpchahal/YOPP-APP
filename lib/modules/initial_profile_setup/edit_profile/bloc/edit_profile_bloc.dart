@@ -1,15 +1,17 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_service.dart';
 import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/edit_profile_event.dart';
 import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/edit_profile_state.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/user_profile.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/user_profile.dart';
 
 class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
-  final ProfileService firebaseService;
+  final ProfileService _profileService;
 
   EditProfileBloc(
-    this.firebaseService,
+    this._profileService,
   ) : super(EditProfileState());
 
   @override
@@ -18,12 +20,17 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
       try {
         yield state.copyWith(
             status: EditProfileStatus.initial, message: "Loading");
-        final userInfo = await firebaseService.getupdateProfile(event.userId);
+        final userInfo = await _profileService.loadProfile(event.userId);
+
         yield state.copyWith(
             status: EditProfileStatus.loaded,
             userProfile: userInfo,
             message: "");
       } catch (e) {
+        FirebaseCrashlytics.instance.log("GetUpdatedUserProfile");
+
+        FirebaseCrashlytics.instance
+            .recordFlutterError(FlutterErrorDetails(exception: e));
         yield state.copyWith(
             status: EditProfileStatus.failure, message: e.toString());
       }
@@ -38,11 +45,11 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
 
         if (event.image != null) {
           final photoUrl =
-              await firebaseService.uploadProfilePhoto(event.image);
-          data = data.copyWith(imageUrl: photoUrl);
+              await _profileService.uploadProfilePhoto(event.image);
+          data = data.copyWith(avatar: photoUrl);
         }
 
-        await firebaseService.updateProfile(data);
+        await _profileService.updateProfile(data);
 
         yield state.copyWith(
             status: EditProfileStatus.updated,

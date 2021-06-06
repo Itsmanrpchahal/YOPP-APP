@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yopp/helper/app_constants.dart';
 
 import 'package:yopp/modules/initial_profile_setup/birth_year/bloc/birth_year_event.dart';
-import 'package:yopp/modules/initial_profile_setup/edit_profile/bloc/profile_service.dart';
+import 'package:yopp/modules/bottom_navigation/profile/bloc/profile_service.dart';
 
 import 'birth_year_state.dart';
 
@@ -16,24 +16,24 @@ class BirthYearBloc extends Bloc<BirthYearEvent, BirthYearState> {
       try {
         yield state.copyWith(
             status: BirthYearServiceStatus.updating, message: "Updating");
-        final currentYear = DateTime.now().year;
+        final currentDate = DateTime.now();
+        final differenceInDays = currentDate.difference(event.birthDate).inDays;
 
-        if (currentYear - event.year > PreferenceConstants.maxAgeValue) {
+        if (differenceInDays > PreferenceConstants.maxAgeValue * 365) {
           yield state.copyWith(
               status: BirthYearServiceStatus.failure,
               message: "Age should be less than equal to " +
                   PreferenceConstants.maxAgeValue.toInt().toString());
-        } else if (currentYear - event.year >=
-            PreferenceConstants.underAgeValue) {
-          await _service.saveDOB(event.year);
+        } else if (differenceInDays >=
+            PreferenceConstants.underAgeValue * 365) {
+          await _service.saveDOB(event.birthDate);
           yield state.copyWith(
               status: BirthYearServiceStatus.success, message: "Updated");
         } else {
           yield state.copyWith(
               status: BirthYearServiceStatus.underAgeAlert,
-              message: event.year.toString());
+              message: event.birthDate.year.toString());
         }
-        yield state;
       } catch (error) {
         yield state.copyWith(
             status: BirthYearServiceStatus.failure, message: error.toString());
@@ -44,16 +44,16 @@ class BirthYearBloc extends Bloc<BirthYearEvent, BirthYearState> {
       try {
         yield state.copyWith(
             status: BirthYearServiceStatus.updating, message: "Updating");
-        final currentYear = DateTime.now().year;
+        final currentDate = DateTime.now();
+        final differenceInDays = currentDate.difference(event.birthDate).inDays;
 
-        if (currentYear - event.year > PreferenceConstants.maxAgeValue) {
+        if (differenceInDays > PreferenceConstants.maxAgeValue * 365) {
           yield state.copyWith(
               status: BirthYearServiceStatus.failure,
               message: "Age should be less than equal to " +
                   PreferenceConstants.maxAgeValue.toInt().toString());
-        } else if (currentYear - event.year >=
-            PreferenceConstants.minAgeValue) {
-          await _service.saveDOB(event.year);
+        } else if (differenceInDays >= PreferenceConstants.minAgeValue * 365) {
+          await _service.saveDOB(event.birthDate);
           yield state.copyWith(
               status: BirthYearServiceStatus.success, message: "Updated");
         } else {
@@ -62,7 +62,6 @@ class BirthYearBloc extends Bloc<BirthYearEvent, BirthYearState> {
               message: "Age should be greater than equal to " +
                   PreferenceConstants.minAgeValue.toInt().toString());
         }
-        yield state;
       } catch (error) {
         yield state.copyWith(
             status: BirthYearServiceStatus.failure, message: error.toString());

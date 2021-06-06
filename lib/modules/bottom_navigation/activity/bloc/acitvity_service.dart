@@ -36,8 +36,7 @@ class FirebaseActivityService extends ActivityService {
       return data;
     } on FirebaseException catch (e) {
       FirebaseCrashlytics.instance.log("getLatestActivityList");
-      FirebaseCrashlytics.instance.log(selectedUserId);
-      FirebaseCrashlytics.instance.log(limit.toString());
+
       FirebaseCrashlytics.instance
           .recordFlutterError(FlutterErrorDetails(exception: e));
       throw Exception(e.message);
@@ -66,9 +65,7 @@ class FirebaseActivityService extends ActivityService {
         return data;
       } on FirebaseException catch (e) {
         FirebaseCrashlytics.instance.log("getPreviousActivities");
-        FirebaseCrashlytics.instance
-            .log(userId ?? FirebaseAuth.instance.currentUser.uid);
-        FirebaseCrashlytics.instance.log(lastTimeStamp.toString());
+
         FirebaseCrashlytics.instance
             .recordFlutterError(FlutterErrorDetails(exception: e));
         throw Exception(e.message);

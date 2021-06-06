@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 typedef imageFunction = Function(File image);
 
@@ -58,54 +59,69 @@ class ImagePickerService {
     //
   }
 
-  // static Future<bool> _checkCameraPermission() async {
-  //   var status = await Permission.camera.request();
-  //   switch (status) {
-  //     case PermissionStatus.granted:
-  //       return true;
-  //       break;
-  //     default:
-  //       return false;
-  //       break;
-  //   }
-  // }
-
-  // static Future<bool> _checkGallaryPermission() async {
-  //   var status = await Permission.photos.request();
-  //   switch (status) {
-  //     case PermissionStatus.granted:
-  //       return true;
-  //       break;
-  //     default:
-  //       return false;
-  //       break;
-  //   }
-  // }
-
   static Future<File> _openGallary(BuildContext context) async {
-    // final permission = await _checkGallaryPermission();
-    // if (!permission) {
-    //   return;
-    // }
     try {
       final pickedFile =
           await _picker.getImage(source: ImageSource.gallery, maxWidth: 1024);
       return pickedFile == null ? null : File(pickedFile.path);
     } catch (error) {
+      print(error);
+      if (error.code == 'photo_access_denied') {
+        await showDialog(
+            context: context,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+                  title: Text('Photo Permission'),
+                  content: Text(
+                      'We need to access the photos to take a picture for your profile in the app.'),
+                  actions: <Widget>[
+                    CupertinoDialogAction(
+                      child: Text('Deny'),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    CupertinoDialogAction(
+                      child: Text('Settings'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        openAppSettings();
+                      },
+                    ),
+                  ],
+                ));
+      }
+
       return null;
     }
   }
 
   static Future<File> _openCamera(BuildContext context) async {
-    // final permission = await _checkCameraPermission();
-    // if (!permission) {
-    //   return;
-    // }
     try {
       final pickedFile =
           await _picker.getImage(source: ImageSource.camera, maxWidth: 1024);
       return pickedFile == null ? null : File(pickedFile.path);
     } catch (error) {
+      print(error);
+      if (error.code == 'camera_access_denied') {
+        await showDialog(
+            context: context,
+            builder: (BuildContext context) => CupertinoAlertDialog(
+                  title: Text('Camera Permission'),
+                  content: Text(
+                      'We need to access the camera to take a picture for your profile in the app.'),
+                  actions: <Widget>[
+                    CupertinoDialogAction(
+                      child: Text('Deny'),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    CupertinoDialogAction(
+                      child: Text('Settings'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        openAppSettings();
+                      },
+                    ),
+                  ],
+                ));
+      }
       return null;
     }
   }

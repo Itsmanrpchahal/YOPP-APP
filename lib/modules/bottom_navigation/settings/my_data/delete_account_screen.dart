@@ -5,11 +5,7 @@ import 'package:yopp/helper/app_color/color_helper.dart';
 import 'package:yopp/modules/bottom_navigation/settings/my_data/delete_options.dart';
 import 'package:yopp/modules/bottom_navigation/settings/my_data/confirm_delete_screen.dart';
 import 'package:yopp/routing/transitions.dart';
-
-import 'package:yopp/widgets/app_bar/transparent_appbar_with_cross.dart';
-import 'package:yopp/widgets/body/full_gradient_scaffold.dart';
-
-import 'package:yopp/widgets/custom_clipper/half_curve_clipper.dart';
+import 'package:yopp/widgets/app_bar/default_app_bar.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
   static Route get route {
@@ -27,13 +23,10 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FullGradientScaffold(
-      extendBodyBehindAppBar: false,
-      appBar: TransparentAppBarWithCrossAction(
+    return Scaffold(
+      appBar: new DefaultAppBar(
+        titleText: "Delete Account",
         context: context,
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
       ),
       body: _buildBody(context),
     );
@@ -41,37 +34,20 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
   Widget _buildBody(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 8),
-      child: ClipPath(
-        clipper: HalfCurveClipper(),
-        child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(color: Hexcolor("#F2F2F2")),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.only(left: 30, right: 30, top: 30),
-                  child: Text(
-                    "Delete Account",
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 36),
-                  ),
-                ),
-                SizedBox(height: 16),
-                Expanded(
-                  child: Align(
-                      alignment: Alignment.center,
-                      child: _buildBodyDetail(context)),
-                ),
-                SizedBox(height: 16),
-              ],
-            )),
-      ),
-    );
+        width: double.infinity,
+        decoration: BoxDecoration(color: Hexcolor("#F2F2F2")),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Align(
+                  alignment: Alignment.center,
+                  child: _buildBodyDetail(context)),
+            ),
+            SizedBox(height: 16),
+          ],
+        ));
   }
 
   Widget _buildBodyDetail(BuildContext context) {

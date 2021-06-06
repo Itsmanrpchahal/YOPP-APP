@@ -48,7 +48,7 @@ class RaisedRoundedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return RaisedButton(
         color: backgroundColor,
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
