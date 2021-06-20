@@ -415,7 +415,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 )),
                 Expanded(
                   child: Text(
-                    "ABOUT",
+                    "About",
                     style: TextStyle(
                       color: AppColors.green,
                       fontWeight: FontWeight.w400,

@@ -42,7 +42,6 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildBody(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 8),
       child: detailsWidget != null
           ? Container(
               child: detailsWidget,

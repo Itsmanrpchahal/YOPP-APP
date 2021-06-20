@@ -12,7 +12,7 @@ class VersionText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        "Version 1.1.1",
+        "Version 1.1.2",
         style: TextStyle(color: color ?? AppColors.lightGrey, fontSize: 12),
       ),
     );

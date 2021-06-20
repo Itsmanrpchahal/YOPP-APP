@@ -29,7 +29,7 @@ class _DiscoverProfileWidgetState extends State<DiscoverProfileWidget> {
   @override
   Widget build(BuildContext context) {
     var skillLevel = "Skill Level - ";
-    String height;
+    String userHeight;
     String pace;
     String distance;
 
@@ -37,7 +37,7 @@ class _DiscoverProfileWidgetState extends State<DiscoverProfileWidget> {
       skillLevel += widget?.userProfile?.selectedInterest?.skill?.name ?? "";
       if (widget.userProfile.selectedInterest.interest == "Dancing" &&
           widget.userProfile?.height != null) {
-        height =
+        userHeight =
             "Height - " + (widget.userProfile?.height ?? "").toString() + " cm";
       }
 
@@ -63,7 +63,7 @@ class _DiscoverProfileWidgetState extends State<DiscoverProfileWidget> {
         });
       },
       child: Container(
-        height: widget.width,
+        height: widget.height,
         width: widget.width,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
@@ -76,7 +76,7 @@ class _DiscoverProfileWidgetState extends State<DiscoverProfileWidget> {
           switchOutCurve: Curves.easeOut,
           child: showDetail
               ? Container(
-                  height: widget.width,
+                  height: widget.height,
                   width: widget.width,
                   padding: EdgeInsets.all(8.0),
                   color: AppColors.darkGrey,
@@ -101,11 +101,11 @@ class _DiscoverProfileWidgetState extends State<DiscoverProfileWidget> {
                           ),
                         ),
                         SizedBox(height: 8),
-                        height == null
+                        userHeight == null
                             ? Container()
                             : FittedBox(
                                 child: Text(
-                                  height,
+                                  userHeight,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -159,9 +159,14 @@ class _DiscoverProfileWidgetState extends State<DiscoverProfileWidget> {
                     ),
                   ),
                 )
-              : ProfileIcon(
-                  imageUrl: widget.userProfile?.avatar,
-                  gender: widget.userProfile?.gender,
+              : AspectRatio(
+                  aspectRatio: 1,
+                  child: Center(
+                    child: ProfileIcon(
+                      imageUrl: widget.userProfile?.avatar,
+                      gender: widget.userProfile?.gender,
+                    ),
+                  ),
                 ),
           transitionBuilder: (child, animation) {
             final offsetAnimation =

@@ -16,6 +16,7 @@ import 'package:yopp/modules/bottom_navigation/profile/pages/connections/bloc/co
 
 import 'package:yopp/modules/bottom_navigation/profile/pages/connections/bloc/connections_bloc.dart';
 import 'package:yopp/modules/bottom_navigation/users_profile/ui/users_profile_screen.dart';
+import 'package:yopp/modules/initial_profile_setup/select_gender/bloc/gender.dart';
 
 class DiscoverPage extends StatefulWidget {
   final Function onRefresh;
@@ -54,14 +55,14 @@ class _DiscoverPageState extends State<DiscoverPage> {
     var width = (screenWidth - ((_crossAxisCount + 1) * _crossAxisSpacing)) /
         _crossAxisCount;
 
-    var height = width + 90;
+    var height = width + 100;
     var _aspectRatio = width / height;
 
     return BlocConsumer<DiscoverBloc, DiscoverState>(
       builder: (context, state) {
         return Container(
           padding: EdgeInsets.symmetric(
-              horizontal: _crossAxisSpacing, vertical: _mainAxisSpacing),
+              horizontal: _mainAxisSpacing, vertical: _mainAxisSpacing),
           child: SmartRefresher(
             controller: refreshController,
             enablePullUp: state.data.length > 0,
@@ -147,7 +148,7 @@ class DiscoveredUserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var sportName = "Looking For: ";
+    var sportName = "Looking for ";
 
     if (userProfile?.selectedInterest != null) {
       sportName += userProfile.selectedInterest?.subCategory != null
@@ -155,15 +156,26 @@ class DiscoveredUserCard extends StatelessWidget {
           : userProfile.selectedInterest?.category != null
               ? userProfile.selectedInterest?.category
               : userProfile.selectedInterest?.interest ?? "";
+      sportName += " partners.";
+    }
+
+    var genderAndAge = '';
+    if (userProfile.gender != null) {
+      genderAndAge = userProfile.gender.name.toUpperCase();
+    }
+
+    if (userProfile.age != null) {
+      genderAndAge += ", " + userProfile.age.toString();
     }
 
     return Container(
+      width: width,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
               height: 16,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -192,6 +204,7 @@ class DiscoveredUserCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Expanded(
                 child: Container(
@@ -208,33 +221,20 @@ class DiscoveredUserCard extends StatelessWidget {
                                 userProfile: null,
                               ));
                             },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Flexible(
-                                  fit: FlexFit.loose,
-                                  child: Text((userProfile?.name ?? ""),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      softWrap: true,
-                                      style: TextStyle(
-                                          color: AppColors.green,
-                                          fontSize: 16)),
-                                ),
-                                Text(" - ",
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                        color: AppColors.green, fontSize: 16)),
-                                Text(userProfile?.age?.toString() ?? "",
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                        color: AppColors.green, fontSize: 16)),
-                              ],
-                            )),
+                            child: Text((userProfile?.name ?? ""),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
+                                style: TextStyle(
+                                    color: AppColors.green, fontSize: 16))),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: 2),
+                      Text(
+                        genderAndAge,
+                        maxLines: 1,
+                        style: TextStyle(color: AppColors.green, fontSize: 12),
+                      ),
+                      SizedBox(height: 2),
                       Text(
                         sportName,
                         maxLines: 2,
@@ -245,7 +245,7 @@ class DiscoveredUserCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: 4),
               Container(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
