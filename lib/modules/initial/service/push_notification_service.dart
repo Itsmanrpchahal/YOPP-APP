@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:yopp/modules/bottom_navigation/activity/activity_screen.dart';
 import 'package:yopp/modules/bottom_navigation/settings/notifications/bloc/notification_service.dart';
@@ -42,7 +44,7 @@ class PushNotificationService {
 
       await messaging.requestPermission(
         alert: true,
-        announcement: false,
+        announcement: true,
         badge: true,
         carPlay: false,
         criticalAlert: false,
@@ -99,6 +101,7 @@ class PushNotificationService {
       if (notification != null && android != null) {
         try {
           print("Showing android notification");
+
           flutterLocalNotificationsPlugin.show(
               notification.hashCode,
               notification.title,
@@ -148,6 +151,11 @@ class PushNotificationService {
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
+  if (message.data.isNotEmpty) {
+    FlutterAppBadger.updateBadgeCount(message.data.length);
+  }
+  print("SIZE =>>>>>>> "+message.data.length.toString());
+
   return;
 }
 

@@ -52,7 +52,7 @@ class ApiConnectionService extends ConnectionService {
       print("addConnection :" + body);
 
       var response = await http.post(
-        url,
+        Uri.parse(url),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(data),
       );
@@ -106,7 +106,7 @@ class ApiConnectionService extends ConnectionService {
       print("loadConnections :" + body);
 
       var response = await http.post(
-        url,
+        Uri.parse(url),
         headers: {"Content-Type": "application/json"},
         body: body,
       );

@@ -12,7 +12,12 @@ class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return FadeRoute(builder: (_) => InitialScreen());
+        return FadeRoute(builder: (_) => BlocProvider<ActivityBloc>(
+            create: (BuildContext context) => ActivityBloc(
+                service: FirebaseActivityService(),
+                chatService: FirebaseChatService()),
+            child: InitialScreen(),
+          ),);
 
       case AuthScreen.routeName:
         return FadeRoute(builder: (_) => AuthScreen());

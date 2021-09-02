@@ -96,7 +96,7 @@ class ApiDiscoverService extends DiscoverService {
 
       String body = json.encode(data);
 
-      var response = await http.post(url,
+      var response = await http.post(Uri.parse(url),
           headers: {"Content-Type": "application/json"}, body: body);
 
       if (response.statusCode == 201) {

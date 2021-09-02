@@ -64,7 +64,7 @@ class APIProfileService extends ProfileService {
         'countryCode': profile.countryCode,
         'email': profile.email
       };
-      var response = await http.post(url, body: body);
+      var response = await http.post(Uri.parse(url), body: body);
       print(response.request.toString());
       print(body.toString());
 
@@ -134,7 +134,7 @@ class APIProfileService extends ProfileService {
     print(profile.toJson());
 
     try {
-      var response = await http.patch(url,
+      var response = await http.patch(Uri.parse(url),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
@@ -175,7 +175,7 @@ class APIProfileService extends ProfileService {
 
     try {
       var response = await http.get(
-        url,
+        Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -330,7 +330,7 @@ class APIProfileService extends ProfileService {
 
       print(jsonEncode(body));
 
-      var response = await http.patch(url, body: body);
+      var response = await http.patch(Uri.parse(url), body: body);
       print("url: " + url);
       print("body:" + body.toString());
 
@@ -378,7 +378,7 @@ class APIProfileService extends ProfileService {
       body['uid'] = uid;
       print(jsonEncode(body));
 
-      var response = await http.post(url, body: body);
+      var response = await http.post(Uri.parse(url), body: body);
 
       if (response.statusCode == 201) {
         print("addNewInterest  success");
@@ -415,7 +415,7 @@ class APIProfileService extends ProfileService {
       {@required String myId, @required String friendId}) async {
     try {
       var url = UrlConstants.blockUser;
-      var response = await http.post(url, body: {
+      var response = await http.post(Uri.parse(url), body: {
         'my_id': myId,
         'friend_id': friendId,
       });
@@ -458,7 +458,8 @@ class APIProfileService extends ProfileService {
       };
 
       var response = await http.post(
-        UrlConstants.blockedUserList,
+        Uri.parse(UrlConstants.blockedUserList)
+        ,
         body: params,
       );
 
@@ -537,7 +538,7 @@ class APIProfileService extends ProfileService {
 
     try {
       var response = await http.get(
-        url,
+        Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

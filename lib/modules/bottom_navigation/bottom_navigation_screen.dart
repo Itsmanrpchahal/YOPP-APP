@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import 'package:flutter/material.dart';
@@ -111,8 +112,8 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen>
   void initState() {
     super.initState();
     print("BottomNavigationScreen");
-    print(widget.userProfile.toString());
-    print(widget.interests);
+    print("View 1 =>    "+widget.userProfile.toString());
+    print("View 2 =>    "+widget.interests.toString());
 
     updateIfLocationChanged = true;
 
@@ -204,6 +205,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen>
         if (tab != null && tab != -1) {
           _profileScreen.profileTabController.index = tab;
         }
+       
       });
     }
 

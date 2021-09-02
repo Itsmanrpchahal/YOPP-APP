@@ -187,6 +187,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   _buildReportOptions(BuildContext context) {
     return BlocListener<ReportBloc, BaseState>(
+
       listener: (context, state) async {
         switch (state.status) {
           case ServiceStatus.initial:

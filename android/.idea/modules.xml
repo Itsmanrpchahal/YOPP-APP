@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android.iml" filepath="$PROJECT_DIR$/.idea/modules/android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/android.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/android.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1289339444/android.cloud_firestore.iml" filepath="$PROJECT_DIR$/.idea/modules/1289339444/android.cloud_firestore.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/378612889/android.firebase_analytics.iml" filepath="$PROJECT_DIR$/.idea/modules/378612889/android.firebase_analytics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/189672945/android.firebase_auth.iml" filepath="$PROJECT_DIR$/.idea/modules/189672945/android.firebase_auth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1039592791/android.firebase_core.iml" filepath="$PROJECT_DIR$/.idea/modules/-1039592791/android.firebase_core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/289139622/android.firebase_crashlytics.iml" filepath="$PROJECT_DIR$/.idea/modules/289139622/android.firebase_crashlytics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/2050990410/android.firebase_database.iml" filepath="$PROJECT_DIR$/.idea/modules/2050990410/android.firebase_database.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1199447470/android.firebase_messaging.iml" filepath="$PROJECT_DIR$/.idea/modules/1199447470/android.firebase_messaging.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1930285676/android.firebase_performance.iml" filepath="$PROJECT_DIR$/.idea/modules/1930285676/android.firebase_performance.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1740627924/android.firebase_storage.iml" filepath="$PROJECT_DIR$/.idea/modules/1740627924/android.firebase_storage.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1303813336/android.flutter_libphonenumber.iml" filepath="$PROJECT_DIR$/.idea/modules/1303813336/android.flutter_libphonenumber.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1341128722/android.flutter_local_notifications.iml" filepath="$PROJECT_DIR$/.idea/modules/-1341128722/android.flutter_local_notifications.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-444564285/android.flutter_pdfview.iml" filepath="$PROJECT_DIR$/.idea/modules/-444564285/android.flutter_pdfview.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1271504298/android.flutter_plugin_android_lifecycle.iml" filepath="$PROJECT_DIR$/.idea/modules/-1271504298/android.flutter_plugin_android_lifecycle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1022586340/android.flutter_sim_country_code.iml" filepath="$PROJECT_DIR$/.idea/modules/1022586340/android.flutter_sim_country_code.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1493406280/android.geocoder.iml" filepath="$PROJECT_DIR$/.idea/modules/-1493406280/android.geocoder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/569663063/android.geolocator_android.iml" filepath="$PROJECT_DIR$/.idea/modules/569663063/android.geolocator_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1209694460/android.image_cropper.iml" filepath="$PROJECT_DIR$/.idea/modules/1209694460/android.image_cropper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1512468955/android.image_picker.iml" filepath="$PROJECT_DIR$/.idea/modules/-1512468955/android.image_picker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1835776796/android.path_provider.iml" filepath="$PROJECT_DIR$/.idea/modules/1835776796/android.path_provider.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1394460977/android.permission_handler.iml" filepath="$PROJECT_DIR$/.idea/modules/-1394460977/android.permission_handler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/893623527/android.shared_preferences.iml" filepath="$PROJECT_DIR$/.idea/modules/893623527/android.shared_preferences.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-220694483/android.sqflite.iml" filepath="$PROJECT_DIR$/.idea/modules/-220694483/android.sqflite.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1400360512/android.url_launcher.iml" filepath="$PROJECT_DIR$/.idea/modules/1400360512/android.url_launcher.iml" />
+    </modules>
+  </component>
+</project>

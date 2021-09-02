@@ -22,7 +22,7 @@ class ApiReportService extends ReportService {
       String subject, String description) async {
     try {
       var url = UrlConstants.reportUser;
-      var response = await http.post(url, body: {
+      var response = await http.post(Uri.parse(url), body: {
         'report_by': reportBy,
         'report_to': reportTo,
         'title': title,

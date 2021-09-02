@@ -1,11 +1,18 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:yopp/helper/app_color/app_colors.dart';
 import 'package:yopp/modules/bottom_navigation/activity/activity_screen.dart';
+import 'package:yopp/modules/bottom_navigation/activity/bloc/activity.dart';
+import 'package:yopp/modules/bottom_navigation/activity/bloc/activity_bloc.dart';
+import 'package:yopp/modules/bottom_navigation/activity/bloc/activity_event.dart';
+import 'package:yopp/modules/bottom_navigation/activity/bloc/activity_state.dart';
 import 'package:yopp/modules/bottom_navigation/bloc/bottom_nav_bloc.dart';
 import 'package:yopp/modules/bottom_navigation/bloc/bottom_nav_event.dart';
 import 'package:yopp/modules/bottom_navigation/filter/filter_dialog.dart';
@@ -66,21 +73,34 @@ class _ProfileScreenState extends State<ProfileScreen>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-
+  Timer timer;
   bool showWelcomeDialog = true;
-
+  List<ChatActivity> activities = [];
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  bool showElevatedButtonBadge = true;
   @override
   void initState() {
     print("profile init");
 
+    //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => loadLatestActivities(context));
+    loadLatestActivities(context);
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
+  }
+
+  loadLatestActivities(BuildContext context) {
+    print("test");
+    BlocProvider.of<ActivityBloc>(context, listen: false)
+        .add(GetLatestActivityList());
+  }
+
+  loadPreviousActivities(BuildContext context) {
+    BlocProvider.of<ActivityBloc>(context, listen: false)
+        .add(GetPreviousActivityList());
   }
 
   void checkForUserUpdate(BuildContext context) {
@@ -118,6 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final toolBarSectionHeight = (MediaQuery.of(context).size.height / 3);
     final tabBarHeight = 70.0;
 
+    _buildActivityList(context);
     return BlocConsumer<ProfileBloc, ProfileState>(
         listener: (context, state) async {
       print(state.status);
@@ -127,6 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           break;
         case ProfileServiceStatus.loading:
           ProgressHud.of(context)?.showLoading(text: state.message);
+          //loadLatestActivities(context);
           break;
         case ProfileServiceStatus.loaded:
           break;
@@ -161,12 +183,93 @@ class _ProfileScreenState extends State<ProfileScreen>
               ?.showSuccessAndDismiss(text: state.message);
           break;
       }
+
+      // BlocListener<ActivityBloc, ActivityState>(
+      //   listener: (context, state) async {
+      //     ProgressHud.of(context).dismiss();
+      //     switch (state.status) {
+      //       case ActivityStatus.initial:
+      //         break;
+      //       case ActivityStatus.loadingInitial:
+      //         ProgressHud.of(context)
+      //             .show(ProgressHudType.loading, state.serviceMessage);
+      //         break;
+      //       case ActivityStatus.loadingPrevious:
+      //         ProgressHud.of(context)
+      //             .show(ProgressHudType.loading, state.serviceMessage);
+      //         break;
+      //       case ActivityStatus.loadingInitialSuccess:
+      //         break;
+      //       case ActivityStatus.loadingPreviousSuccess:
+      //         loadLatestActivities(context);
+      //         break;
+      //       case ActivityStatus.replying:
+      //         ProgressHud.of(context)
+      //             .show(ProgressHudType.loading, state.serviceMessage);
+      //         break;
+      //       case ActivityStatus.replied:
+      //         await ProgressHud.of(context).showAndDismiss(
+      //             ProgressHudType.success, state.serviceMessage);
+      //
+      //         break;
+      //       case ActivityStatus.failed:
+      //         break;
+      //     }
+      //BlocListener<ActivityBloc, ActivityState>(
+          //       //   listener: (context, state) async {
+          //       //     ProgressHud.of(context).dismiss();
+          //       //     switch (state.status) {
+          //       //       case ActivityStatus.initial:
+          //       //         break;
+          //       //       case ActivityStatus.loadingInitial:
+          //       //         ProgressHud.of(context)
+          //       //             .show(ProgressHudType.loading, state.serviceMessage);
+          //       //         break;
+          //       //       case ActivityStatus.loadingPrevious:
+          //       //         ProgressHud.of(context)
+          //       //             .show(ProgressHudType.loading, state.serviceMessage);
+          //       //         break;
+          //       //       case ActivityStatus.loadingInitialSuccess:
+          //       //         break;
+          //       //       case ActivityStatus.loadingPreviousSuccess:
+          //       //         loadLatestActivities(context);
+          //       //         break;
+          //       //       case ActivityStatus.replying:
+          //       //         ProgressHud.of(context)
+          //       //             .show(ProgressHudType.loading, state.serviceMessage);
+          //       //         break;
+          //       //       case ActivityStatus.replied:
+          //       //         await ProgressHud.of(context).showAndDismiss(
+          //       //             ProgressHudType.success, state.serviceMessage);
+          //       //
+          //       //         break;
+          //       //       case ActivityStatus.failed:
+          //       //         break;
+          //       //     }
+          //       //
+          //       //     setState(() {
+          //       //       activities = state.activities;
+          //       //     });
+          //       //   },
+          //       //   child: _buildBody(context),
+          //       // );
+          //       // _buildActivityList(context);
+      //     setState(() {
+      //       activities = state.activities;
+      //     });
+      //   },
+      //   child: _buildBody(context),
+      // );
+      // _buildActivityList(context);
     }, builder: (context, state) {
       if (state.status == ProfileServiceStatus.loadingFailed) {
         return RetryWidget(
           onRetry: () => checkForUserUpdate(context),
         );
       }
+
+      //loadLatestActivities(context);
+
       return NestedScrollView(
         floatHeaderSlivers: true,
         headerSliverBuilder: (context, value) {
@@ -201,6 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             tabHeight: tabBarHeight,
                             userHeight: state.userProfile?.height?.toInt(),
                             connectionCount: state?.connectionCount ?? 0),
+                        // _buildActivityList(context)
                       ],
                     ),
                   ),
@@ -227,6 +331,17 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       );
     });
+  }
+
+  Widget _buildActivityList(BuildContext context) {
+    //if (activities.isEmpty) {
+    return _buildNoDataBackground(context);
+    // }
+  }
+
+  _buildNoDataBackground(BuildContext context) {
+    print("from size-----------------");
+    return print("SIZE " + activities.length.toString());
   }
 
   _addNewInterest(BuildContext context) async {
@@ -352,21 +467,73 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
             Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 16, bottom: 16),
-                child: CircleIconButton(
-                  radius: 22,
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(ActivityScreen.routeName),
-                  icon: SvgPicture.asset(
-                    "assets/icons/notification.svg",
-                    color: AppColors.green,
-                    fit: BoxFit.none,
+                alignment: Alignment.bottomRight,
+                child: BlocListener<ActivityBloc, ActivityState>(
+                  listener: (context, state) async {
+                    switch (state.status) {
+                      case ActivityStatus.initial:
+                        break;
+                      case ActivityStatus.loadingInitial:
+                        // ProgressHud.of(context).show(
+                        //     ProgressHudType.loading, state.serviceMessage);
+                        break;
+                      case ActivityStatus.loadingPrevious:
+                        // ProgressHud.of(context).show(
+                        //     ProgressHudType.loading, state.serviceMessage);
+                        break;
+                      case ActivityStatus.loadingInitialSuccess:
+                        break;
+                      case ActivityStatus.loadingPreviousSuccess:
+                        break;
+                      case ActivityStatus.replying:
+                        // ProgressHud.of(context).show(
+                        //     ProgressHudType.loading, state.serviceMessage);
+                        break;
+                      case ActivityStatus.replied:
+                        // await ProgressHud.of(context).showAndDismiss(
+                        //     ProgressHudType.success, state.serviceMessage);
+                        loadLatestActivities(context);
+                        break;
+                      case ActivityStatus.failed:
+                        print("failed");
+                        break;
+                    }
+                    print("testing------");
+                    print(state.activities);
+
+                    setState(() {
+                      activities = state.activities;
+                       FlutterAppBadger.updateBadgeCount(state.activities.length);
+                    });
+
+                    if(state.activities.isEmpty)
+                    {
+                      showElevatedButtonBadge = false;
+                    }else {
+                      showElevatedButtonBadge = true;
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16, bottom: 16),
+                    child: CircleIconButton(
+                      radius: 22,
+                      onPressed: () => Navigator.of(context)
+                          .pushNamed(ActivityScreen.routeName),
+                      // icon: SvgPicture.asset(
+                      //   "assets/icons/notification.svg",
+                      //   color: AppColors.green,
+                      //   fit: BoxFit.none,
+                      // ),
+                      
+                      icon: Badge(
+                        showBadge: showElevatedButtonBadge,
+                        badgeContent:
+                          Text(activities.length.toString()),
+                        child:  Icon(Icons.notifications),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
+                )),
           ],
         ),
       ),

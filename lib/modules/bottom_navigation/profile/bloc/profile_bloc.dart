@@ -52,7 +52,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         FirebaseCrashlytics.instance
             .recordFlutterError(FlutterErrorDetails(exception: e));
 
-        print(e.toString());
+        print("HERE IS A ERROR ====>     "+ e.toString());
         yield state.copyWith(
             status: ProfileServiceStatus.loadingFailed, message: e.toString());
       }
@@ -95,6 +95,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           uid: FirebaseAuth.instance.currentUser.uid,
           interest: event.interest,
         );
+        print("HERE IS A ERROR ====>     "+ userProfile.toJson().toString());
         print(userProfile.toJson().toString());
         yield state.copyWith(
             status: ProfileServiceStatus.updated,

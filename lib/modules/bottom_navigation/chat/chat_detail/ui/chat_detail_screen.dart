@@ -59,6 +59,7 @@ class ChatDetailScreen extends StatefulWidget {
   final ChatDescription chatDescription;
   final String chatRoomId;
 
+
   const ChatDetailScreen({
     Key key,
     @required this.chatDescription,
@@ -75,6 +76,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
 
   bool otherUserIsOnline = false;
   bool iAmTyping = false;
+  String name;
   bool otherUserIsTyping = false;
 
   RefreshController _refreshController;
@@ -88,6 +90,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   @override
   void dispose() {
     print("dispose ChatDetailScreen");
+
     _scrollController.dispose();
     _refreshController.dispose();
     typingSubscription?.cancel();
@@ -106,6 +109,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
   void initState() {
     super.initState();
     print("initState ChatDetailScreen");
+    //print(otherUserProfile.name);
     _refreshController = new RefreshController();
     _scrollController = new ScrollController();
     WidgetsBinding.instance.addObserver(this);
@@ -205,7 +209,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
           extendBody: true,
           appBar: ChatDetailAppBar(
             context: context,
-            titleText: "CHAT",
+            titleText: name,
             onBlockUser: () => _blockUser(
               friendId: otherUserProfile?.id,
               myId: context.read<ProfileBloc>().state.userProfile.id,
@@ -236,6 +240,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen>
                   break;
                 case ChatStatus.loadingInitialSuccess:
                   otherUserProfile = state.otherUser;
+
+                  setState(() {
+                    name = state.otherUser.name;
+                  });
+                  print("NAME =>   "+state.otherUser.name+"    =>  "+name);
                   if (widget.chatDescription == null) {
                     setupChatRoom(state.chatRoom);
                   }

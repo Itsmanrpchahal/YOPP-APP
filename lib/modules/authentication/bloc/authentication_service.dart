@@ -28,14 +28,17 @@ class AuthService implements BaseAuthService {
     try {
       final result = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
+      print(result);
       return result;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         throw Exception('No user found for that email.');
       } else if (e.code == 'wrong-password') {
         throw Exception('Wrong password provided for that user.');
+      }else {
+        throw Exception(e.message);
       }
-      throw Exception(e.message);
+
     }
   }
 

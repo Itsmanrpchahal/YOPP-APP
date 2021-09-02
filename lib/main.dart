@@ -72,6 +72,8 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.portraitDown,
     ]);
 
+  
+
     return MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(

@@ -44,10 +44,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   void initState() {
     print("DiscoverScreen  init");
+
     selectedInterest =
         context.read<ProfileBloc>().state.userProfile.selectedInterest;
     _tabController = TabController(length: 3, initialIndex: 2, vsync: this);
-
     _refreshCards(
       context,
     );
@@ -67,29 +67,34 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
     SearchBy searchBy;
 
-    if (_tabController.index == 0 || _tabController.index == 1) {
-      searchBy = SearchBy.interest;
-    } else {
-      if (selectedInterest?.subCategory != null) {
-        searchBy = SearchBy.subCategory;
-      } else if (selectedInterest?.category != null) {
-        searchBy = SearchBy.category;
-      } else if (selectedInterest?.interest != null) {
+    if (selectedInterest != null) {
+      if (_tabController.index == 0 || _tabController.index == 1) {
         searchBy = SearchBy.interest;
+      } else {
+        if (selectedInterest?.subCategory != null) {
+          searchBy = SearchBy.subCategory;
+        } else if (selectedInterest?.category != null) {
+          searchBy = SearchBy.category;
+        } else if (selectedInterest?.interest != null) {
+          searchBy = SearchBy.interest;
+        }
       }
-    }
 
-    print("searchBy:" + searchBy.toString());
-    print(_tabController.index == 1);
-    BlocProvider.of<DiscoverBloc>(context, listen: false).add(
-      DiscoverUsersEvent(
-        showOnlineOnly: _tabController.index == 1,
-        currentUser: context.read<ProfileBloc>().state.userProfile,
-        selectedInterest: selectedInterest,
-        searchBy: searchBy,
-        searchRange: context.read<SearchRangeBloc>().state.selectedSerarchRange,
-      ),
-    );
+      print(_tabController.index == 1);
+      BlocProvider.of<DiscoverBloc>(context, listen: false).add(
+        DiscoverUsersEvent(
+          showOnlineOnly: _tabController.index == 1,
+          currentUser: context.read<ProfileBloc>().state.userProfile,
+          selectedInterest: selectedInterest,
+          searchBy: searchBy,
+          searchRange:
+              context.read<SearchRangeBloc>().state.selectedSerarchRange,
+        ),
+      );
+      print("searchBy:" + searchBy.toString());
+    } else {
+      print("searchBy 1: " + searchBy.toString());
+    }
   }
 
   void refineInterest(BuildContext context) async {
@@ -107,13 +112,15 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
     if (interestToBeUpdate != null) {
       print("interestToBeUpdate");
-      print(interestToBeUpdate.toJson().toString());
+      print("Here 1 Print=>      " + interestToBeUpdate.toJson().toString());
 
       setState(() {
         selectedInterest = interestToBeUpdate;
       });
 
       _refreshCards(context);
+    } else {
+      print("Here 5 Print=>      " + interestToBeUpdate.toJson().toString());
     }
   }
 
@@ -130,19 +137,29 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     String categoryImageUrl = "";
     final interestsOptions = context.watch<ProfileBloc>().state.interestOptions;
 
-    interestsOptions.forEach((interestOption) {
-      if (interestOption.id == selectedInterest.interest.id) {
-        interestImageUrl = UrlConstants.interestImageUrl(interestOption.image);
-        categoryImageUrl = UrlConstants.interestImageUrl(interestOption.image);
 
-        interestOption.category.forEach((categoryOption) {
-          if (categoryOption.id == selectedInterest.category.id) {
-            print(categoryOption.toRawJson());
-            categoryImageUrl =
-                UrlConstants.discoverCategoryImageUrl(categoryOption.image);
-          }
-        });
+    interestsOptions.forEach((interestOption) {
+
+          if (selectedInterest != null && interestOption.id == selectedInterest.interest.id) {
+            interestImageUrl = UrlConstants.interestImageUrl(interestOption.image);
+            categoryImageUrl = UrlConstants.interestImageUrl(interestOption.image);
+            print("Error 1  =>    "+interestOption.id);
+            interestOption.category.forEach((categoryOption) {
+                  if (categoryOption.id == selectedInterest.category.id) {
+                    print("Here 2 Print=>      " + categoryOption.toRawJson());
+                    categoryImageUrl =
+                        UrlConstants.discoverCategoryImageUrl(categoryOption.image);
+                  }else{
+                    print("Here 22 Print=>      " + categoryOption.toRawJson());
+                  }
+
+
+            });
+
+        }else {
+        print("Error =>    "+interestOption.id);
       }
+
     });
 
     return ProgressHud(
@@ -154,7 +171,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           ),
           body: BlocConsumer<DiscoverBloc, DiscoverState>(
             listener: (context, state) async {
-              print(state.status.toString());
+              print("Here 3 Print=>      " + state.status.toString());
               ProgressHud.of(context)?.dismiss();
               switch (state.status) {
                 case DiscoverServiceStatus.initial:

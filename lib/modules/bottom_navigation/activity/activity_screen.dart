@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -91,6 +92,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
             setState(() {
               activities = state.activities;
+              
             });
           },
           child: _buildBody(context),
@@ -135,9 +137,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
         print("onRefresh");
       },
       onLoading: () => loadPreviousActivities(context),
-      onTwoLevel: () {
-        print("two level");
-      },
+      // onTwo1Level: () {
+      //   print("two level");
+      // },
       controller: _refreshController,
       child: ListView.builder(
           itemCount: activities.length,
